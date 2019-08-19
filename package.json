@@ -90,8 +90,7 @@
   },
   "description": "Djali Client App",
   "build": {
-    "appId": "app.djali.client",
-    "extraResources": ["./external/**"]
+    "appId": "app.djali.client"
   },
   "main": "public/electron.js",
   "homepage": "./",
