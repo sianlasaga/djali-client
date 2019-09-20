@@ -18,6 +18,8 @@ import Login from '../../components/Card/Login'
 import SocialMediaSettings from '../../components/Card/Settings/SocialMediaSettings'
 import EducationCardGroup from '../../components/CardGroup/Settings/EducationCardGroup'
 import EmploymentCardGroup from '../../components/CardGroup/Settings/EmploymentCardGroup'
+import CompetencySelector from '../../components/CompetencySelector/CompetencySelector'
+import DropdownSearchCompetency from '../../components/Dropdown/DropdownSearchCompetency'
 import CustomDescriptionForm from '../../components/Form/CustomDescriptionForm'
 import EducationForm from '../../components/Form/EducationForm'
 import EmploymentForm from '../../components/Form/EmploymentForm'
@@ -87,6 +89,7 @@ interface GeneralProfileState {
   selectedModerator: Profile
   hasFetchedAModerator: boolean
   settings: Settings
+  competencies: any
 }
 
 class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
@@ -153,6 +156,32 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
       selectedModerators: [],
       selectedModerator: new Profile(),
       settings,
+      competencies: [
+        {
+          compName: 'competency1',
+          checked: false,
+        },
+        {
+          compName: 'competency2',
+          checked: false,
+        },
+        {
+          compName: 'competency3',
+          checked: false,
+        },
+        {
+          compName: 'competency4',
+          checked: false,
+        },
+        {
+          compName: 'competency5',
+          checked: false,
+        },
+        {
+          compName: 'competency6',
+          checked: false,
+        },
+      ],
     }
 
     this.handleChange = this.handleChange.bind(this)
@@ -175,6 +204,7 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
     this.handleModeratorSearch = this.handleModeratorSearch.bind(this)
     this.handleCompetencySubmit = this.handleCompetencySubmit.bind(this)
     this.handleCompetencyReset = this.handleCompetencyReset.bind(this)
+    this.checkCompetency = this.checkCompetency.bind(this)
   }
 
   public async componentDidMount() {
@@ -231,6 +261,14 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
         }
       })
     }
+  }
+
+  public checkCompetency(index) {
+    const cmp = this.state.competencies
+    const rem = cmp.splice(index, 1)
+    cmp.unshift(rem)
+    console.log(cmp)
+    this.setState({ competencies: cmp })
   }
 
   public handleRoundSelector(title, key, index) {
@@ -520,7 +558,12 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
         {
           component: (
             <div id="programming-competency-cont">
-              <Accordion content={skills} />
+              <DropdownSearchCompetency />
+              <CompetencySelector
+                checker={this.checkCompetency}
+                competencies={this.state.competencies}
+              />
+              {/* <Accordion content={skills} />
               <div className="uk-flex uk-flex-row uk-flex-center uk-margin-top">
                 <Button
                   className="uk-button uk-button-default uk-margin-right"
@@ -535,10 +578,10 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
                 >
                   Save
                 </Button>
-              </div>
+              </div> */}
             </div>
           ),
-          label: 'Programmer Competency',
+          label: 'Competencies',
         },
       ],
     ]
