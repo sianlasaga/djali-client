@@ -31,6 +31,10 @@ import CurrencyTypes from '../../constants/CurrencyTypes.json'
 import FiatCurrencies from '../../constants/FiatCurrencies.json'
 import Languages from '../../constants/Languages.json'
 import UnitsOfMeasurement from '../../constants/UnitsOfMeasurement.json'
+import {
+  competencySelectorInstance,
+  CompetencySelectorModel,
+} from '../../models/CompetencySelector'
 import Profile from '../../models/Profile'
 import Settings from '../../models/Settings'
 import { webSocketResponsesInstance } from '../../models/WebsocketResponses'
@@ -89,7 +93,7 @@ interface GeneralProfileState {
   selectedModerator: Profile
   hasFetchedAModerator: boolean
   settings: Settings
-  competencies: any
+  competencySelector: CompetencySelectorModel
 }
 
 class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
@@ -156,32 +160,7 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
       selectedModerators: [],
       selectedModerator: new Profile(),
       settings,
-      competencies: [
-        {
-          compName: 'competency1',
-          checked: false,
-        },
-        {
-          compName: 'competency2',
-          checked: false,
-        },
-        {
-          compName: 'competency3',
-          checked: false,
-        },
-        {
-          compName: 'competency4',
-          checked: false,
-        },
-        {
-          compName: 'competency5',
-          checked: false,
-        },
-        {
-          compName: 'competency6',
-          checked: false,
-        },
-      ],
+      competencySelector: competencySelectorInstance,
     }
 
     this.handleChange = this.handleChange.bind(this)
@@ -204,7 +183,7 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
     this.handleModeratorSearch = this.handleModeratorSearch.bind(this)
     this.handleCompetencySubmit = this.handleCompetencySubmit.bind(this)
     this.handleCompetencyReset = this.handleCompetencyReset.bind(this)
-    this.checkCompetency = this.checkCompetency.bind(this)
+    this.toggleCompetency = this.toggleCompetency.bind(this)
   }
 
   public async componentDidMount() {
@@ -263,12 +242,15 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
     }
   }
 
-  public checkCompetency(index) {
-    const cmp = this.state.competencies
-    const rem = cmp.splice(index, 1)
-    cmp.unshift(rem)
-    console.log(cmp)
-    this.setState({ competencies: cmp })
+  public toggleCompetency(i) {
+    const cmp = this.state.competencySelector.competencies
+    let competencySelector
+    if (cmp[i].checked) {
+      competencySelector = this.state.competencySelector.uncheckCompetency(i)
+    } else {
+      competencySelector = this.state.competencySelector.checkCompetency(i)
+    }
+    this.setState({ competencySelector })
   }
 
   public handleRoundSelector(title, key, index) {
@@ -560,8 +542,8 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
             <div id="programming-competency-cont">
               <DropdownSearchCompetency />
               <CompetencySelector
-                checker={this.checkCompetency}
-                competencies={this.state.competencies}
+                checker={this.toggleCompetency}
+                competencies={this.state.competencySelector.competencies}
               />
               {/* <Accordion content={skills} />
               <div className="uk-flex uk-flex-row uk-flex-center uk-margin-top">

@@ -1,33 +1,40 @@
 import React from 'react'
+import FlipMove from 'react-flip-move'
 
 import './CompetencySelector.css'
 
 interface CompetencySelectorProps {
   competencies: any
-  checker: (index: number) => void
+  checker: (id: number) => void
 }
 
 const CompetencySelector = ({ competencies, checker }: CompetencySelectorProps) => {
   return (
     <div id="competency-selector">
-      <ul id="competency-selector-ul">
+      <FlipMove
+        className="competency-selector-ul"
+        typeName="ul"
+        leaveAnimation={'none'}
+        enterAnimation={'elevator'}
+      >
         {competencies.map((cmp, i) => {
           return (
-            <li key={`competencyList${i}`}>
-              {cmp}
+            <li key={cmp.id}>
+              {cmp.compName}
               <div className="competency-selector-actions">
                 <span data-uk-icon="icon: cog; ratio: 1.2" className="blue-icon" />
                 <input
+                  key={`${cmp.id}-${cmp.checked}`}
                   className="uk-checkbox fix-margin"
                   type="checkbox"
-                  checked={false}
+                  checked={cmp.checked}
                   onClick={() => checker(i)}
                 />
               </div>
             </li>
           )
         })}
-      </ul>
+      </FlipMove>
     </div>
   )
 }

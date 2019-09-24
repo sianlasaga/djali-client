@@ -2,11 +2,13 @@
     width: 550px;
     margin-left: auto;
     margin-right: auto;
+    height: 500px;
     max-height: 500px;
     overflow-y: auto;
 }
 
-#competency-selector-ul li {
+
+.competency-selector-ul li {
     background-color: rgb(218, 218, 218);
     display: flex;
     flex-direction: row;
@@ -17,6 +19,15 @@
     margin-top: 10px;
     margin-bottom: 10px;
     border-radius: 5px;
+}
+
+.competency-selector-ul li.show {
+    /* transition: all 0.5s ease-out;
+    margin-top: -55px;
+    opacity: 0; */
+    transition: all 0.5s ease-out;
+    animation-name: example;
+    animation-duration: 1s;
 }
 
 .competency-selector-actions {
@@ -32,4 +43,26 @@
     margin-top: 0px;
     border-radius: 3px !important;
     background-color: rgb(170, 170, 170);
+}
+
+@keyframes example {
+    from {
+        margin-top: 0px;
+        opacity: 0;
+    }
+    to {
+        margin-top: -55px;
+        opacity: 0;
+    }
+}
+
+@keyframes example2 {
+    from {
+        margin-top: 55px;
+        opacity: 0;
+    }
+    to {
+        margin-top: 0px;
+        opacity: 0;
+    }
 }
