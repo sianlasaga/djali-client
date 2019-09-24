@@ -17,13 +17,13 @@ interface Props {
 
 const renderReviews = (ratings?: Rating[], djaliRatings?: RatingSummary['djali']) => {
   if (ratings) {
-    return ratings.map(rating => {
+    return ratings.map((rating, index) => {
       const { ratingData, signature, avatar } = rating
       const { customerService, deliverySpeed, description, overall, quality } = ratingData
       const averageRating = (customerService + deliverySpeed + description + overall + quality) / 5
       return (
         <UserReviewSegment
-          key={signature}
+          key={`${signature}${index}`}
           imgSrc={avatar}
           reviewer={ratingData.buyerName}
           review={ratingData.review}
@@ -41,7 +41,7 @@ const renderReviews = (ratings?: Rating[], djaliRatings?: RatingSummary['djali']
         }, 0) / fields.length
       return (
         <UserReviewSegment
-          key={sourceId}
+          key={timestamp}
           imgSrc={avatar}
           reviewer={reviewer || 'User'}
           review={comment}

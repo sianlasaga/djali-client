@@ -225,10 +225,15 @@ class Search implements State {
 
     const priceMin = searchParams.filters.priceMin * 100
     const priceMax = searchParams.filters.priceMax * 100
+
     let priceRange
 
-    if (priceMin >= 0 && priceMax >= 0) {
-      priceRange = `doc.item.price >= ${priceMin} && doc.item.price <= ${priceMax}`
+    if (priceMin >= 0) {
+      priceRange = `doc.item.price >= ${priceMin}`
+    }
+
+    if (priceMax >= 0) {
+      priceRange += `&& doc.item.price <= ${priceMax}`
     }
 
     delete searchParams.filters.priceMin
@@ -284,8 +289,10 @@ class Search implements State {
     })
     this.paginate.totalPages = Math.ceil(result.data.count / this.paginate.limit)
 
-    const listings = result.data.data.map(d => new Listing(d))
-    result.data.data = listings
+    if (result.data.data) {
+      const listings = result.data.data.map(d => new Listing(d))
+      result.data.data = listings
+    }
 
     this.results = result.data as SearchResults
     return this

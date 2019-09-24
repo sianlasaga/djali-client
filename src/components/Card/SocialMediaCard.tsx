@@ -34,8 +34,16 @@ const SocialMediaCard = ({ contact, title }: SocialMediaCardProps) => {
 
         {socialMedia.map(social => {
           const SocialType = SocialMedia.find(e => {
-            return e.value === social.type
+            return e.value.toLowerCase() === social.type.toLowerCase()
           })
+
+          let link
+
+          if (SocialType) {
+            link = SocialType!.link.replace('{uid}', social.username)
+          } else {
+            link = social.proof
+          }
 
           return (
             <div id="social-media" key={social.type}>
@@ -49,13 +57,13 @@ const SocialMediaCard = ({ contact, title }: SocialMediaCardProps) => {
                     href="#"
                     onClick={evt => {
                       evt.preventDefault()
-                      window.openExternal(SocialType!.link.replace('{uid}', social.username))
+                      window.openExternal(link)
                     }}
                   >
                     {social.username}
                   </a>
                 ) : (
-                  <a href={SocialType!.link.replace('{uid}', social.username)} target="_blank">
+                  <a href={link} target="_blank">
                     {social.username}
                   </a>
                 )}

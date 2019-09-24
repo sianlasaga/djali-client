@@ -132,24 +132,28 @@ class Profile implements ProfileSchema {
   public static async retrieve(id?: string, force?: boolean): Promise<Profile> {
     let profile: Profile
 
-    if (id) {
-      const peerRequest = await Axios.get(
-        `${config.djaliHost}/djali/peer/get?id=${id}${force ? '&force=true' : ''}`
-      )
-      const peerInfo = peerRequest.data.profile as Profile
-      profile = new Profile(peerInfo)
-    } else {
-      const profileRequest = await Axios.get(
-        `${config.djaliHost}/djali/peer/get?id=${force ? '&force=true' : '&force=false'}`
-      )
-      /**
-       * Properly handle when https://github.com/djali-foundation/djali-services/issues/3 is resolved.
-       */
-      if (!profileRequest.data.profile.peerID) {
-        throw new Error('Profile not found')
+    try {
+      if (id) {
+        const peerRequest = await Axios.get(
+          `${config.djaliHost}/djali/peer/get?id=${id}${force ? '&force=true' : ''}`
+        )
+        const peerInfo = peerRequest.data.profile as Profile
+        profile = new Profile(peerInfo)
+      } else {
+        const profileRequest = await Axios.get(
+          `${config.djaliHost}/djali/peer/get?id=${force ? '&force=true' : '&force=false'}`
+        )
+        /**
+         * Properly handle when https://github.com/djali-foundation/djali-services/issues/3 is resolved.
+         */
+        if (!profileRequest.data.profile.peerID) {
+          throw new Error('Profile not found')
+        }
+        profile = new Profile(profileRequest.data.profile)
+        profile.extLocation = profile.processAddresses(profile.extLocation)
       }
-      profile = new Profile(profileRequest.data.profile)
-      profile.extLocation = profile.processAddresses(profile.extLocation)
+    } catch (e) {
+      profile = new Profile()
     }
 
     profile!.background!.educationHistory.forEach(Profile.periodParser)
@@ -301,8 +305,8 @@ class Profile implements ProfileSchema {
     if (this.moderatorInfo.fee.fixedFee && this.moderatorInfo.fee.fixedFee.amount) {
       this.moderatorInfo.fee.fixedFee.amount = this.moderatorInfo.fee.fixedFee.amount * 100
     }
-    const firstSentence = this.about.split('.')[0].substr(0, 160)
-    this.shortDescription = firstSentence + '.'
+    const firstSentence = this.about.split('.')[0].substr(0, 157)
+    this.shortDescription = firstSentence + '...'
   }
 
   public postSave() {

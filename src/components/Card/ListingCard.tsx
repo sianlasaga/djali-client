@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom'
 import config from '../../config'
 import Listing from '../../models/Listing'
 
+import currency from '../../models/Currency'
 import './ListingCard.css'
 
 interface ListingProps {
   listing: Listing
+  targetCurrency?: string
 }
 
 const generateStars = (averageRating: number) => {
@@ -17,8 +19,8 @@ const generateStars = (averageRating: number) => {
   return stars
 }
 
-const ListingCard = ({ listing }: ListingProps) => (
-  <div className="uk-card uk-card-hover listing">
+const ListingCard = ({ listing, targetCurrency }: ListingProps) => (
+  <div className="uk-card uk-card-hover listing" id={listing.hash}>
     <Link to={`/listing/${listing.hash}`}>
       <div>
         <img
@@ -40,7 +42,12 @@ const ListingCard = ({ listing }: ListingProps) => (
       <div className="listing-small-info">
         <div className="listing-title">{listing.item.title}</div>
         <p className="price">
-          {listing.displayValue} {listing.metadata.pricingCurrency}
+          {currency.convert(
+            Number(listing.displayValue),
+            listing.metadata.pricingCurrency,
+            targetCurrency!
+          )}{' '}
+          {targetCurrency}
         </p>
         <div className="rating-text">
           {generateStars(listing.averageRating)} ({listing.averageRating})

@@ -2,6 +2,7 @@ import isElectron from 'is-electron'
 import React, { Component, ReactNode } from 'react'
 
 import { Accordion } from '../../components/Accordion'
+import { Button } from '../../components/Button'
 import { SideMenuWithContentCard } from '../../components/Card'
 import { AddressesCardGroup } from '../../components/CardGroup'
 import {
@@ -11,8 +12,10 @@ import {
   RegistrationForm,
   TagsForm,
 } from '../../components/Form'
+import { ModeratorInfoModal } from '../../components/Modal'
+import { RoundSelector } from '../../components/RoundSelector'
+import { webSocketResponsesInstance } from '../../models/WebsocketResponses'
 
-import { Button } from '../../components/Button'
 import ChangeCredentials from '../../components/Card/ChangeCredentials'
 import Login from '../../components/Card/Login'
 import SocialMediaSettings from '../../components/Card/Settings/SocialMediaSettings'
@@ -23,9 +26,6 @@ import DropdownSearchCompetency from '../../components/Dropdown/DropdownSearchCo
 import CustomDescriptionForm from '../../components/Form/CustomDescriptionForm'
 import EducationForm from '../../components/Form/EducationForm'
 import EmploymentForm from '../../components/Form/EmploymentForm'
-import { ModeratorInfoModal } from '../../components/Modal'
-import { RoundSelector } from '../../components/RoundSelector'
-import config from '../../config'
 import CryptoCurrencies from '../../constants/CryptoCurrencies'
 import CurrencyTypes from '../../constants/CurrencyTypes.json'
 import FiatCurrencies from '../../constants/FiatCurrencies.json'
@@ -37,7 +37,6 @@ import {
 } from '../../models/CompetencySelector'
 import Profile from '../../models/Profile'
 import Settings from '../../models/Settings'
-import { webSocketResponsesInstance } from '../../models/WebsocketResponses'
 import ImageUploaderInstance from '../../utils/ImageUploaderInstance'
 import NestedJsonUpdater from '../../utils/NestedJSONUpdater'
 import decodeHtml from '../../utils/Unescape'

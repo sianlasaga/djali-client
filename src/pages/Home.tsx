@@ -3,6 +3,7 @@ import React, { Component } from 'react'
 
 import ListingCardGroup from '../components/CardGroup/ListingCardGroup'
 import { InlineMultiDropdowns } from '../components/Dropdown'
+import { Pagination } from '../components/Pagination'
 import { FormSelector } from '../components/Selector'
 import SidebarFilter from '../components/Sidebar/Filter'
 import ServiceCategories from '../constants/ServiceCategories.json'
@@ -46,6 +47,7 @@ class Home extends Component<HomeProps, HomeState> {
   }
 
   public async componentDidMount() {
+    this.state.search.reset()
     await this.handleSearchSubmit()
     const profile = await Profile.retrieve()
     this.setState({ profile })
@@ -56,47 +58,6 @@ class Home extends Component<HomeProps, HomeState> {
       this.handleSearchSubmit()
     }
     window.addEventListener('srchEvent', searchEvent as EventListener)
-  }
-
-  public renderPages(): JSX.Element[] {
-    const { search } = this.state
-    const pages: JSX.Element[] = []
-    let startIndex = 0
-    let paginationLimit = 9
-
-    if (search.paginate.currentPage < 5) {
-      startIndex = 0
-      paginationLimit = 9
-    } else {
-      startIndex = search.paginate.currentPage - 4
-      paginationLimit = search.paginate.currentPage + 5
-    }
-
-    if (paginationLimit > search.paginate.totalPages) {
-      paginationLimit = search.paginate.totalPages
-    }
-
-    for (let index = startIndex; index < paginationLimit; index++) {
-      let isActive = false
-
-      if (search.paginate.currentPage === index) {
-        isActive = true
-      }
-
-      pages.push(
-        <li key={index}>
-          <a
-            href="#"
-            className={isActive ? 'uk-badge' : ''}
-            onClick={async () => await this.handlePaginate(index)}
-          >
-            {index + 1}
-          </a>
-        </li>
-      )
-    }
-
-    return pages
   }
 
   public render() {
@@ -125,31 +86,15 @@ class Home extends Component<HomeProps, HomeState> {
                 searchInstance={this.state.search}
               />
             </div>
-            {search.results.count > 0 ? (
+            {search.results.data && search.results.count > 0 ? (
               <div className="custom-width-two">
                 <div className="pagination-cont">
                   <div className="left-side-container">
-                    {search.results.count > 25 ? (
-                      <ul className="uk-pagination">
-                        <li>
-                          <a
-                            href="#"
-                            onClick={() => this.handlePaginate(search.paginate.currentPage - 1)}
-                          >
-                            <span uk-icon="icon: chevron-left" />
-                          </a>
-                        </li>
-                        {this.renderPages()}
-                        <li>
-                          <a
-                            href="#"
-                            onClick={() => this.handlePaginate(search.paginate.currentPage + 1)}
-                          >
-                            <span uk-icon="icon: chevron-right" />
-                          </a>
-                        </li>
-                      </ul>
-                    ) : null}
+                    <Pagination
+                      totalRecord={search.results.count}
+                      recordsPerPage={search.paginate.limit}
+                      handlePageChange={this.handlePaginate}
+                    />
                     <div className="uk-expand uk-margin-left margin-custom">
                       <FormSelector
                         options={SortOptions}
@@ -159,13 +104,29 @@ class Home extends Component<HomeProps, HomeState> {
                     </div>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <ListingCardGroup data={search.results.data} />
+                    <ListingCardGroup
+                      key={search.paginate.currentPage}
+                      data={search.results.data}
+                      targetCurrency={profile.preferences.fiat}
+                    />
                   </div>
                 </div>
               </div>
             ) : search.isSearching ? (
               <div className="uk-align-center">
                 <div data-uk-spinner="ratio: 3" />
+              </div>
+            ) : !search.results.data ? (
+              <div
+                className="uk-align-center full-vh uk-flex uk-flex-column uk-flex-center uk-flex-middle"
+                id="empty-results"
+              >
+                <h1>Crawling...</h1>
+                <p>Great! It seems like you just installed Djali.</p>
+
+                <p className="uk-margin-top">
+                  Please come back later as Djali crawls the listings on the network.
+                </p>
               </div>
             ) : (
               <div
@@ -282,7 +243,7 @@ class Home extends Component<HomeProps, HomeState> {
   }
 
   private async handlePaginate(index: number) {
-    const search = await this.state.search.executePaginate(index)
+    const search = await this.state.search.executePaginate(index - 1)
     if (search) {
       this.setState({
         search,
