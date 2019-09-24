@@ -6,9 +6,10 @@ import './CompetencySelector.css'
 interface CompetencySelectorProps {
   competencies: any
   checker: (id: number) => void
+  showTest: () => void
 }
 
-const CompetencySelector = ({ competencies, checker }: CompetencySelectorProps) => {
+const CompetencySelector = ({ competencies, checker, showTest }: CompetencySelectorProps) => {
   return (
     <div id="competency-selector">
       <FlipMove
@@ -22,7 +23,11 @@ const CompetencySelector = ({ competencies, checker }: CompetencySelectorProps) 
             <li key={cmp.id}>
               {cmp.compName}
               <div className="competency-selector-actions">
-                <span data-uk-icon="icon: cog; ratio: 1.2" className="blue-icon" />
+                <span
+                  data-uk-icon="icon: cog; ratio: 1.2"
+                  className="blue-icon"
+                  onClick={() => showTest()}
+                />
                 <input
                   key={`${cmp.id}-${cmp.checked}`}
                   className="uk-checkbox fix-margin"

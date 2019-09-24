@@ -93,6 +93,10 @@ interface GeneralProfileState {
   hasFetchedAModerator: boolean
   settings: Settings
   competencySelector: CompetencySelectorModel
+  searhCompQuery: string
+  seachResultComp: any[]
+  searchValComp: string
+  showTest: boolean
 }
 
 class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
@@ -160,6 +164,10 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
       selectedModerator: new Profile(),
       settings,
       competencySelector: competencySelectorInstance,
+      searhCompQuery: '',
+      seachResultComp: [],
+      searchValComp: '',
+      showTest: false,
     }
 
     this.handleChange = this.handleChange.bind(this)
@@ -183,6 +191,8 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
     this.handleCompetencySubmit = this.handleCompetencySubmit.bind(this)
     this.handleCompetencyReset = this.handleCompetencyReset.bind(this)
     this.toggleCompetency = this.toggleCompetency.bind(this)
+    this.searchCompetency = this.searchCompetency.bind(this)
+    this.showTest = this.showTest.bind(this)
   }
 
   public async componentDidMount() {
@@ -249,7 +259,24 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
     } else {
       competencySelector = this.state.competencySelector.checkCompetency(i)
     }
-    this.setState({ competencySelector })
+    this.setState({
+      competencySelector,
+      seachResultComp: [],
+      searhCompQuery: '',
+      searchValComp: '',
+    })
+  }
+
+  public searchCompetency(query) {
+    const cmp = this.state.competencySelector.competencies
+    const result = cmp.filter(obj => obj.compName.includes(query))
+    this.setState({ seachResultComp: result, searchValComp: query })
+    console.log(result)
+  }
+
+  public showTest() {
+    console.log('showtest')
+    this.setState({ showTest: true })
   }
 
   public handleRoundSelector(title, key, index) {
@@ -539,27 +566,41 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
         {
           component: (
             <div id="programming-competency-cont">
-              <DropdownSearchCompetency />
-              <CompetencySelector
-                checker={this.toggleCompetency}
-                competencies={this.state.competencySelector.competencies}
-              />
-              {/* <Accordion content={skills} />
-              <div className="uk-flex uk-flex-row uk-flex-center uk-margin-top">
-                <Button
-                  className="uk-button uk-button-default uk-margin-right"
-                  onClick={this.handleCompetencyReset}
-                >
-                  Clear
-                </Button>
-                <Button
-                  className="uk-button uk-button-primary"
-                  onClick={this.handleCompetencySubmit}
-                  showSpinner={this.state.isSubmitting}
-                >
-                  Save
-                </Button>
-              </div> */}
+              {this.state.showTest ? (
+                <>
+                  <Accordion content={skills} />
+                  <div className="uk-flex uk-flex-row uk-flex-center uk-margin-top">
+                    <Button
+                      className="uk-button uk-button-default uk-margin-right"
+                      onClick={this.handleCompetencyReset}
+                    >
+                      Clear
+                    </Button>
+                    <Button
+                      className="uk-button uk-button-primary"
+                      onClick={this.handleCompetencySubmit}
+                      showSpinner={this.state.isSubmitting}
+                    >
+                      Save
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <DropdownSearchCompetency
+                    checker={this.toggleCompetency}
+                    competencies={this.state.competencySelector.competencies}
+                    searchChange={this.searchCompetency}
+                    searchResults={this.state.seachResultComp}
+                    val={this.state.searchValComp}
+                  />
+                  <CompetencySelector
+                    checker={this.toggleCompetency}
+                    competencies={this.state.competencySelector.competencies}
+                    showTest={this.showTest}
+                  />
+                </>
+              )}
             </div>
           ),
           label: 'Competencies',
