@@ -94,8 +94,6 @@ interface GeneralProfileState {
   settings: Settings
   competencySelector: CompetencySelectorModel
   searhCompQuery: string
-  seachResultComp: any[]
-  searchValComp: string
   showTest: boolean
 }
 
@@ -166,7 +164,6 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
       competencySelector: competencySelectorInstance,
       searhCompQuery: '',
       seachResultComp: [],
-      searchValComp: '',
       showTest: false,
     }
 
@@ -193,6 +190,7 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
     this.toggleCompetency = this.toggleCompetency.bind(this)
     this.searchCompetency = this.searchCompetency.bind(this)
     this.showTest = this.showTest.bind(this)
+    this.selectCompetencyDropdown = this.selectCompetencyDropdown.bind(this)
   }
 
   public async componentDidMount() {
@@ -263,19 +261,28 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
       competencySelector,
       seachResultComp: [],
       searhCompQuery: '',
-      searchValComp: '',
     })
   }
 
   public searchCompetency(query) {
     const cmp = this.state.competencySelector.competencies
-    const result = cmp.filter(obj => obj.compName.includes(query))
-    this.setState({ seachResultComp: result, searchValComp: query })
-    console.log(result)
+    const regex = new RegExp(`^${query}`, 'i')
+    const result = cmp.filter(obj => regex.test(obj.compName) && obj.checked === false)
+    this.setState({ seachResultComp: result, searhCompQuery: query })
+  }
+
+  public selectCompetencyDropdown(id) {
+    const cmp = this.state.competencySelector.competencies
+    const i = cmp.findIndex(el => el.id === id)
+    const competencySelector = this.state.competencySelector.checkCompetency(i)
+    this.setState({
+      competencySelector,
+      seachResultComp: [],
+      searhCompQuery: '',
+    })
   }
 
   public showTest() {
-    console.log('showtest')
     this.setState({ showTest: true })
   }
 
@@ -588,11 +595,11 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
               ) : (
                 <>
                   <DropdownSearchCompetency
-                    checker={this.toggleCompetency}
+                    checker={this.selectCompetencyDropdown}
                     competencies={this.state.competencySelector.competencies}
                     searchChange={this.searchCompetency}
                     searchResults={this.state.seachResultComp}
-                    val={this.state.searchValComp}
+                    val={this.state.searhCompQuery}
                   />
                   <CompetencySelector
                     checker={this.toggleCompetency}

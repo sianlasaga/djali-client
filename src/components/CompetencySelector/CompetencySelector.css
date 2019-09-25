@@ -22,9 +22,6 @@
 }
 
 .competency-selector-ul li.show {
-    /* transition: all 0.5s ease-out;
-    margin-top: -55px;
-    opacity: 0; */
     transition: all 0.5s ease-out;
     animation-name: example;
     animation-duration: 1s;

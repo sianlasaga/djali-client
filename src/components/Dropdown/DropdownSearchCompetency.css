@@ -33,13 +33,10 @@
 #flexible-cont-comp {
     border: 1px solid rgb(189, 189, 189);
     border-radius: 5px;
-    /* padding-left: 15px;
-    padding-right: 15px; */
-    /* height: 400px; */
     position: absolute;
     z-index: 9999;
     background-color: white;
-    width: 549px;
+    width: 549.5px;
 }
 
 .blue-icon {
@@ -72,14 +69,6 @@
 #search-comp-ul li:hover span{
     color: white;
 }
-
-/* #search-comp-ul li:last-child{
-    padding-bottom: 22px;
-}
-
-#search-comp-ul li:first-child{
-    padding-top: 22px;
-} */
 
 .cont-content-comp {
     padding-left: 10px;

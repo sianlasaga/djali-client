@@ -19,9 +19,15 @@ const DropdownSearchCompetency = ({
 }: DropdownSearchCompetencyProps) => {
   return (
     <div id="main-cont-comp">
-      <div id="flexible-cont-comp" className="uk-box-shadow-large">
+      <div
+        id="flexible-cont-comp"
+        className={searchResults.length !== 0 && val !== '' ? 'uk-box-shadow-large' : ''}
+      >
         <div className="padding-fix">
-          <div id="input-cont-comp" className={val !== '' ? 'bordered' : ''}>
+          <div
+            id="input-cont-comp"
+            className={searchResults.length !== 0 && val !== '' ? 'bordered' : ''}
+          >
             <input
               id="search-bar-comp"
               type="text"
@@ -31,13 +37,10 @@ const DropdownSearchCompetency = ({
             <span data-uk-icon="icon: search; ratio: 1.2" className="blue-icon" />
           </div>
         </div>
-        {val !== '' ? (
+        {searchResults.length !== 0 && val !== '' ? (
           <ul id="search-comp-ul">
             {searchResults.map((cmp, i) => (
-              <li
-                key={`${cmp.id}-dsc`}
-                onClick={() => checker(Number(cmp.id.substring(3, cmp.id.length)) - 1)}
-              >
+              <li key={`${cmp.id}-dsc`} onClick={() => checker(cmp.id)}>
                 {cmp.compName}
                 <span data-uk-icon="icon: plus" className="blue-icon" />
               </li>
