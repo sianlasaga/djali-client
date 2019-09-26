@@ -1,12 +1,13 @@
 import React from 'react'
 
+import { CompetencySelectorInterface } from '../../models/CompetencySelector'
 import './DropdownSearchCompetency.css'
 
 interface DropdownSearchCompetencyProps {
-  competencies: any
-  checker: (id: number) => void
+  competencies: CompetencySelectorInterface[]
+  checker: (id: string) => void
   searchChange: (q: string) => void
-  searchResults: any
+  searchResults: CompetencySelectorInterface[]
   val: string
 }
 
@@ -41,7 +42,7 @@ const DropdownSearchCompetency = ({
           <ul id="search-comp-ul">
             {searchResults.map((cmp, i) => (
               <li key={`${cmp.id}-dsc`} onClick={() => checker(cmp.id)}>
-                {cmp.compName}
+                {cmp.title}
                 <span data-uk-icon="icon: plus" className="blue-icon" />
               </li>
             ))}

@@ -267,7 +267,7 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
   public searchCompetency(query) {
     const cmp = this.state.competencySelector.competencies
     const regex = new RegExp(`^${query}`, 'i')
-    const result = cmp.filter(obj => regex.test(obj.compName) && obj.checked === false)
+    const result = cmp.filter(obj => regex.test(obj.title) && obj.checked === false)
     this.setState({ seachResultComp: result, searhCompQuery: query })
   }
 
