@@ -1,46 +1,22 @@
+import competencies, { CompetencyInterface } from '../competencies'
+
 export interface State {
-  competencies: Competencies[]
+  competencies: CompetencySelectorInterface[]
 }
 
-export interface Competencies {
-  id: string
-  compName: string
+export interface CompetencySelectorInterface extends CompetencyInterface {
+  title: string
   checked: boolean
 }
 
 class CompetencySelectorModel implements State {
-  public competencies: Competencies[] = [
-    {
-      id: 'cmp1',
-      compName: 'competency1',
-      checked: false,
-    },
-    {
-      id: 'cmp2',
-      compName: 'competency2',
-      checked: false,
-    },
-    {
-      id: 'cmp3',
-      compName: 'competency3',
-      checked: false,
-    },
-    {
-      id: 'cmp4',
-      compName: 'competency4',
-      checked: false,
-    },
-    {
-      id: 'cmp5',
-      compName: 'competency5',
-      checked: false,
-    },
-    {
-      id: 'cmp6',
-      compName: 'competency6',
-      checked: false,
-    },
-  ]
+  public competencies: CompetencySelectorInterface[] = []
+
+  constructor() {
+    this.competencies = Object.values(competencies).map(competency => {
+      return { ...competency, checked: false }
+    })
+  }
 
   public checkCompetency(i) {
     const cmp = this.competencies

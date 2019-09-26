@@ -1,10 +1,11 @@
 import React from 'react'
 import FlipMove from 'react-flip-move'
 
+import { CompetencySelectorInterface } from '../../models/CompetencySelector'
 import './CompetencySelector.css'
 
 interface CompetencySelectorProps {
-  competencies: any
+  competencies: CompetencySelectorInterface[]
   checker: (id: number) => void
   showTest: () => void
 }
@@ -21,7 +22,7 @@ const CompetencySelector = ({ competencies, checker, showTest }: CompetencySelec
         {competencies.map((cmp, i) => {
           return (
             <li key={cmp.id}>
-              {cmp.compName}
+              {cmp.title}
               <div className="competency-selector-actions">
                 <span
                   data-uk-icon="icon: cog; ratio: 1.2"
