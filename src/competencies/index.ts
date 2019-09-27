@@ -6,6 +6,7 @@ export interface CompetencyQuestionInterface {
     {
       item: string
       questions: string[]
+      assessment: number
     }
   ]
 }
