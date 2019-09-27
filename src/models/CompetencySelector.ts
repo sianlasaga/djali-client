@@ -13,8 +13,18 @@ class CompetencySelectorModel implements State {
   public competencies: CompetencySelectorInterface[] = []
 
   constructor() {
-    this.competencies = Object.values(competencies).map(competency => {
-      return { ...competency, checked: false }
+    this.competencies = Object.values(competencies).map((competency, i) => {
+      competency.matrix.map(m => {
+        m.subcategories.map(s => {
+          s.questions.map(q => {
+            s.assessment = -1
+            return q
+          })
+          return s
+        })
+        return m
+      })
+      return { ...competency, checked: false, index: i }
     })
   }
 

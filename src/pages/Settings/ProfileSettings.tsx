@@ -95,6 +95,7 @@ interface GeneralProfileState {
   competencySelector: CompetencySelectorModel
   searhCompQuery: string
   showTest: boolean
+  selectedCompetency: any
 }
 
 class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
@@ -165,6 +166,7 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
       searhCompQuery: '',
       seachResultComp: [],
       showTest: false,
+      selectedCompetency: [],
     }
 
     this.handleChange = this.handleChange.bind(this)
@@ -282,18 +284,40 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
     })
   }
 
-  public showTest() {
-    this.setState({ showTest: true })
+  public showTest(index) {
+    const cs = this.state.competencySelector
+    const compTemp = cs.competencies[index]
+    const skills = compTemp.matrix.map((c, i) => {
+      return {
+        title: c.category,
+        component: (
+          <RoundSelector
+            handleSelect={this.handleRoundSelector}
+            id={compTemp.id}
+            compIndex={index}
+            matrixIndex={i}
+            competency={this.state.competencySelector}
+          />
+        ),
+      }
+    })
+    this.setState({ competencySelector: cs, selectedCompetency: skills, showTest: true })
   }
 
-  public handleRoundSelector(title, key, index) {
-    const compTemp = this.state.competency
-    if (compTemp[title][key] !== index) {
-      compTemp[title][key] = index
+  public handleRoundSelector(compIndex, matrixIndex, subIndex, index) {
+    const compTemp = this.state.competencySelector
+    if (
+      compTemp.competencies[compIndex].matrix[matrixIndex].subcategories[subIndex].assessment !==
+      index
+    ) {
+      compTemp.competencies[compIndex].matrix[matrixIndex].subcategories[
+        subIndex
+      ].assessment = index
     } else {
-      compTemp[title][key] = -1
+      compTemp.competencies[compIndex].matrix[matrixIndex].subcategories[subIndex].assessment = -1
     }
-    this.setState({ competency: compTemp })
+    this.showTest(compIndex)
+    this.setState({ competencySelector: compTemp })
   }
 
   public handleCompetencyReset() {
@@ -351,64 +375,6 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
           </div>
         ),
         label: 'Authentication',
-      },
-    ]
-
-    const skills = [
-      {
-        title: 'Computer Science',
-        component: (
-          <RoundSelector
-            handleSelect={this.handleRoundSelector}
-            title="Computer Science"
-            choices={Object.keys(this.state.competency['Computer Science'])}
-            competency={competency}
-          />
-        ),
-      },
-      {
-        title: 'Software Engineering',
-        component: (
-          <RoundSelector
-            handleSelect={this.handleRoundSelector}
-            title="Software Engineering"
-            choices={Object.keys(this.state.competency['Software Engineering'])}
-            competency={competency}
-          />
-        ),
-      },
-      {
-        title: 'Programming',
-        component: (
-          <RoundSelector
-            handleSelect={this.handleRoundSelector}
-            title="Programming"
-            choices={Object.keys(this.state.competency.Programming)}
-            competency={competency}
-          />
-        ),
-      },
-      {
-        title: 'Experience',
-        component: (
-          <RoundSelector
-            handleSelect={this.handleRoundSelector}
-            title="Experience"
-            choices={Object.keys(this.state.competency.Experience)}
-            competency={competency}
-          />
-        ),
-      },
-      {
-        title: 'Knowledge',
-        component: (
-          <RoundSelector
-            handleSelect={this.handleRoundSelector}
-            title="Knowledge"
-            choices={Object.keys(this.state.competency.Knowledge)}
-            competency={competency}
-          />
-        ),
       },
     ]
 
@@ -575,7 +541,7 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
             <div id="programming-competency-cont">
               {this.state.showTest ? (
                 <>
-                  <Accordion content={skills} />
+                  <Accordion content={this.state.selectedCompetency} />
                   <div className="uk-flex uk-flex-row uk-flex-center uk-margin-top">
                     <Button
                       className="uk-button uk-button-default uk-margin-right"

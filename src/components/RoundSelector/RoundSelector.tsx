@@ -4,72 +4,49 @@ import Skills from '../../constants/Skills.json'
 import './RoundSelector.css'
 
 interface Props {
-  handleSelect: (title: string, key: string, index: number) => void
-  title: string
-  choices: string[]
+  handleSelect: (compIndex: number, matrixIndex: number, subIndex: string, index: number) => void
+  id: string
+  compIndex: number
+  matrixIndex: number
   competency: any
 }
 
-const RoundSelector = ({ handleSelect, title, choices, competency, ...props }: Props) => {
+const RoundSelector = ({ handleSelect, id, compIndex, matrixIndex, competency }: Props) => {
   return (
     <div className="main-round-selector">
-      {choices.map((key, index) => (
+      {competency.competencies[compIndex].matrix[matrixIndex].subcategories.map((sub, subIndex) => (
         <>
-          <p className="title-round-selector">{key}</p>
+          <p className="title-round-selector">{sub.item}</p>
           <ul className="ul-round-selector">
-            <li>
+            {sub.questions.map((q, index) => (
+              <>
+                <li key={`choices${index}`}>
+                  <div
+                    onClick={() => handleSelect(compIndex, matrixIndex, subIndex, index)}
+                    className={`round-selector ${
+                      sub.assessment === index ? 'round-selector-active' : ''
+                    }`}
+                    data-uk-tooltip={q}
+                  >
+                    {index}
+                  </div>
+                </li>
+                {index !== 3 ? (
+                  <li>
+                    <div className="round-selector-bar" />
+                  </li>
+                ) : null}
+              </>
+            ))}
+            {/* <li>
               <div
                 onClick={() => handleSelect(title, key, 0)}
-                className={`round-selector ${
-                  competency[title][key] === 0 ? 'round-selector-active' : ''
-                }`}
-                data-uk-tooltip={Skills[title][key][0]}
+                className={`round-selector ${sub.assessment === 0 ? 'round-selector-active' : ''}`}
+                data-uk-tooltip={sub.quusetions}
               >
                 0
               </div>
-            </li>
-            <li>
-              <div className="round-selector-bar" />
-            </li>
-            <li>
-              <div
-                onClick={() => handleSelect(title, key, 1)}
-                className={`round-selector ${
-                  competency[title][key] === 1 ? 'round-selector-active' : ''
-                }`}
-                data-uk-tooltip={Skills[title][key][1]}
-              >
-                1
-              </div>
-            </li>
-            <li>
-              <div className="round-selector-bar" />
-            </li>
-            <li>
-              <div
-                onClick={() => handleSelect(title, key, 2)}
-                className={`round-selector ${
-                  competency[title][key] === 2 ? 'round-selector-active' : ''
-                }`}
-                data-uk-tooltip={Skills[title][key][2]}
-              >
-                2
-              </div>
-            </li>
-            <li>
-              <div className="round-selector-bar" />
-            </li>
-            <li>
-              <div
-                onClick={() => handleSelect(title, key, 3)}
-                className={`round-selector ${
-                  competency[title][key] === 3 ? 'round-selector-active' : ''
-                }`}
-                data-uk-tooltip={Skills[title][key][3]}
-              >
-                3
-              </div>
-            </li>
+            </li> */}
           </ul>
         </>
       ))}
