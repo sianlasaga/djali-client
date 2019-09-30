@@ -51,19 +51,19 @@ class CompetencySelectorModel implements State {
 
   constructor() {
     this.competencies = Object.values(competencies).map((competency, i) => {
-      competency.matrix.map(m => {
-        m.subcategories.map(s => {
-          s.questions.map(q => {
+      competency.matrix.map(matrix => {
+        matrix.subcategories.map(subCategory => {
+          subCategory.questions.map(question => {
             if (!this.descriptionIndex[competency.id]) {
               this.descriptionIndex[competency.id] = {}
             }
-            this.descriptionIndex[competency.id][s.item] = s.questions
-            s.assessment = -1
-            return q
+            this.descriptionIndex[competency.id][subCategory.item] = subCategory.questions
+            subCategory.assessment = -1
+            return question
           })
-          return s
+          return subCategory
         })
-        return m
+        return matrix
       })
       return { ...competency, checked: false, index: i }
     })
@@ -72,7 +72,7 @@ class CompetencySelectorModel implements State {
   public load(rawCompetency: AssessmentSummary) {
     Object.keys(rawCompetency).forEach(selectedCompetency => {
       const i = this.competencies.findIndex(el => el.id === selectedCompetency)
-      this.checkCompetency(i)
+      this.setCompetencyCheck(i, true)
       this.competencies[i].matrix.forEach(matrix => {
         matrix.subcategories = matrix.subcategories.map(subCategory => {
           rawCompetency[selectedCompetency].forEach(competency => {
@@ -89,21 +89,11 @@ class CompetencySelectorModel implements State {
     return this
   }
 
-  public checkCompetency(index: number) {
-    const cmp = this.competencies
-    const rem = cmp.splice(index, 1)
-    rem[0].checked = true
-    const newCmp = [...rem, ...cmp]
-    this.competencies = newCmp
-    return this
-  }
-
-  public uncheckCompetency(index: number) {
-    const cmp = this.competencies
-    const rem = cmp.splice(index, 1)
-    rem[0].checked = false
-    const newCmp = [...cmp, ...rem]
-    this.competencies = newCmp
+  public setCompetencyCheck(index: number, isChecked: boolean) {
+    let competencyClone = [...this.competencies]
+    competencyClone = competencyClone.splice(index, 1)
+    competencyClone[0].checked = isChecked
+    this.competencies = competencyClone
     return this
   }
 

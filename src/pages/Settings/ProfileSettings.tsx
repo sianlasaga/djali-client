@@ -216,12 +216,7 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
 
   public toggleCompetency(i) {
     const cmp = this.state.competencySelector.competencies
-    let competencySelector
-    if (cmp[i].checked) {
-      competencySelector = this.state.competencySelector.uncheckCompetency(i)
-    } else {
-      competencySelector = this.state.competencySelector.checkCompetency(i)
-    }
+    const competencySelector = this.state.competencySelector.setCompetencyCheck(i, !cmp[i].checked)
     this.setState({
       competencySelector,
       seachResultComp: [],
@@ -239,7 +234,7 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
   public selectCompetencyDropdown(id) {
     const cmp = this.state.competencySelector.competencies
     const i = cmp.findIndex(el => el.id === id)
-    const competencySelector = this.state.competencySelector.checkCompetency(i)
+    const competencySelector = this.state.competencySelector.setCompetencyCheck(i, true)
     this.setState({
       competencySelector,
       seachResultComp: [],
