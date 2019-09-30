@@ -35,9 +35,11 @@ const ProfileBasicInfoSegment = ({ profile }: Props) => (
     {JSON.parse(decodeHtml(profile.customProps.skills)).length > 1 ? (
       <TagsCard name="Skills" data={JSON.parse(decodeHtml(profile.customProps.skills))} />
     ) : null}
-    {profile.customProps.programmerCompetency !== '{}' ? (
+
+    {/* Implementation to be updated on new Programmer Competency */}
+    {/* {profile.customProps.programmerCompetency !== '{}' ? (
       <ProgrammersCompetencyCard data={profile} />
-    ) : null}
+    ) : null} */}
   </div>
 )
 

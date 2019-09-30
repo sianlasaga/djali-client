@@ -7,7 +7,7 @@ import './CompetencySelector.css'
 interface CompetencySelectorProps {
   competencies: CompetencySelectorInterface[]
   checker: (id: number) => void
-  showTest: (index: number) => void
+  showTest: (index: number, id: string) => void
 }
 
 const CompetencySelector = ({ competencies, checker, showTest }: CompetencySelectorProps) => {
@@ -27,7 +27,7 @@ const CompetencySelector = ({ competencies, checker, showTest }: CompetencySelec
                 <span
                   data-uk-icon="icon: cog; ratio: 1.2"
                   className="blue-icon"
-                  onClick={() => showTest(i)}
+                  onClick={() => showTest(i, cmp.id)}
                 />
                 <input
                   key={`${cmp.id}-${cmp.checked}`}
