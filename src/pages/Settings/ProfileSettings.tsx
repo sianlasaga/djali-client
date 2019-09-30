@@ -170,16 +170,18 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
 
       const competency = JSON.parse(decodeHtml(profileData.customProps.programmerCompetency))
       const skills = JSON.parse(decodeHtml(profileData.customProps.skills))
-
       const isAuthenticationActivated = await Profile.isAuthenticationActivated()
-
       const settings = await Settings.retrieve()
       const moderatorProfilesRequest = settings.storeModerators.map(moderator =>
         Profile.retrieve(moderator)
       )
       const moderatorProfiles = await Promise.all(moderatorProfilesRequest)
 
+      const competencySelector = this.state.competencySelector.load(profileData.customProps
+        .competencies as AssessmentSummary)
+
       this.setState({
+        competencySelector,
         competency: { ...this.state.competency, ...competency },
         skills,
         profile: profileData,

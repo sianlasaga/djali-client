@@ -178,21 +178,15 @@ class Profile implements ProfileSchema {
     }
 
     profile.background!.educationHistory.forEach(Profile.periodParser)
-
     profile.background!.educationHistory.sort(Profile.periodSorter)
-
     profile.background!.employmentHistory.forEach(Profile.periodParser)
-
     profile.background!.employmentHistory.sort(Profile.periodSorter)
-
     profile.spokenLanguages = ['English', 'Tagalog']
     profile.programmingLanguages = ['Javascript', 'Golang', 'C++']
 
     if (profile.moderatorInfo.fee.fixedFee && profile.moderatorInfo.fee.fixedFee.amount) {
       profile.moderatorInfo.fee.fixedFee.amount = profile.moderatorInfo.fee.fixedFee.amount / 100
     }
-
-    console.log(profile)
 
     return profile
   }
