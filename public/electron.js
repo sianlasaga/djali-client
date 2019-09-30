@@ -1,6 +1,5 @@
 const electron = require('electron')
-const app = electron.app
-const BrowserWindow = electron.BrowserWindow
+const { app, BrowserWindow, Menu, shell, ipcMain } = electron
 const path = require('path')
 const isDev = require('electron-is-dev')
 const spawn = require('child_process').spawn
@@ -27,6 +26,32 @@ if (!isDev && !process.argv.includes('--noexternal')) {
 let mainWindow
 
 const createWindow = async () => {
+  const helpSubmenu = {
+    label: 'Help',
+    submenu: [
+      {
+        label: 'Website',
+        click() {
+          shell.openExternal('https://djali.org')
+        },
+      },
+    ],
+  }
+
+  const menuTemplate = [
+    { role: 'editMenu' },
+    { role: 'viewMenu' },
+    { role: 'windowMenu' },
+    helpSubmenu,
+  ]
+
+  const menu = Menu.buildFromTemplate(menuTemplate)
+  Menu.setApplicationMenu(menu)
+
+  ipcMain.on('contextmenu', () => {
+    menu.popup()
+  })
+
   await app.whenReady()
   mainWindow = new BrowserWindow({
     title: 'Djali',
@@ -40,7 +65,7 @@ const createWindow = async () => {
     frame: false,
     webPreferences: {
       devTools: true,
-      nodeIntegration: false,
+      nodeIntegration: true,
       preload: __dirname + '/preload.js',
     },
   })

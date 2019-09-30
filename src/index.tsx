@@ -1,5 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
+
 import App from './App'
 import config from './config'
 import './config/main.css'
@@ -10,8 +11,20 @@ declare global {
   interface Window {
     socket: WebSocket
     openExternal: (url) => void
+    require: any
   }
 }
+
+const electron = window.require('electron')
+
+window.addEventListener(
+  'contextmenu',
+  e => {
+    e.preventDefault()
+    electron.ipcRenderer.send('contextmenu')
+  },
+  false
+)
 
 window.socket = new WebSocket(`${config.websocketHost}`)
 webSocketResponsesInstance.initialize()
