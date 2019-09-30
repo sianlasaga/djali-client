@@ -32,6 +32,7 @@ import FiatCurrencies from '../../constants/FiatCurrencies.json'
 import Languages from '../../constants/Languages.json'
 import UnitsOfMeasurement from '../../constants/UnitsOfMeasurement.json'
 import {
+  AssessmentSummary,
   competencySelectorInstance,
   CompetencySelectorModel,
 } from '../../models/CompetencySelector'
@@ -84,7 +85,6 @@ interface GeneralProfileState {
   currentParentIndex: number
   currentAction: number
   isAuthenticationActivated: boolean
-  competency: any
   skills: string[]
   availableModerators: Profile[]
   selectedModerators: Profile[]
@@ -96,6 +96,7 @@ interface GeneralProfileState {
   searhCompQuery: string
   showTest: boolean
   selectedCompetency: any
+  currentCompetencyId: string
 }
 
 class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
@@ -114,47 +115,6 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
       avatar: '',
       profile,
       isAuthenticationActivated: false,
-      competency: {
-        'Computer Science': {
-          'Data Structures': -1,
-          Algorithms: -1,
-          'Systems Programming': -1,
-        },
-        'Software Engineering': {
-          'Source Code Version Control': -1,
-          'Build Automation': -1,
-          'Automated Testing': -1,
-        },
-        Programming: {
-          'Problem Decomposition': -1,
-          'Systems Decomposition': -1,
-          Communication: -1,
-          'Code Organization Within A File': -1,
-          'Code Organization Across Files': -1,
-          'Source Tree Organization': -1,
-          'Code Readability': -1,
-          'Defensive Coding': -1,
-          'Error Handling': -1,
-          IDE: -1,
-          API: -1,
-          Frameworks: -1,
-          Requirements: -1,
-          Scripting: -1,
-          Database: -1,
-        },
-        Experience: {
-          'Languages With Professional Experience': -1,
-          'Platforms With Professional Experience': -1,
-          'Years Of Professional Experience': -1,
-        },
-        Knowledge: {
-          'Tool Knowledge': -1,
-          'Languages Exposed To': -1,
-          'Knowledge Of Upcoming Technologies': -1,
-          Books: -1,
-          Blogs: -1,
-        },
-      },
       skills: [],
       hasFetchedAModerator: false,
       originalModerators: [],
@@ -167,6 +127,7 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
       seachResultComp: [],
       showTest: false,
       selectedCompetency: [],
+      currentCompetencyId: '',
     }
 
     this.handleChange = this.handleChange.bind(this)
@@ -284,7 +245,11 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
     })
   }
 
-  public showTest(index) {
+  public showTest(index, id: string) {
+    this.setState({
+      currentCompetencyId: id,
+    })
+
     const cs = this.state.competencySelector
     const compTemp = cs.competencies[index]
     const skills = compTemp.matrix.map((c, i) => {
@@ -316,7 +281,7 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
     } else {
       compTemp.competencies[compIndex].matrix[matrixIndex].subcategories[subIndex].assessment = -1
     }
-    this.showTest(compIndex)
+    this.showTest(compIndex, compTemp.competencies[compIndex].id)
     this.setState({ competencySelector: compTemp })
   }
 
@@ -341,14 +306,25 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
     this.setState({
       isSubmitting: true,
     })
-    this.state.profile.customProps.programmerCompetency = JSON.stringify({
-      ...this.state.competency,
-    })
+    const competencies = { ...(this.state.profile.customProps.competencies as AssessmentSummary) }
+    const assessment = competencySelectorInstance.generateAssessmentSummary(
+      this.state.currentCompetencyId
+    )
+    const fullReport = competencySelectorInstance.generateFullAssessment(
+      this.state.currentCompetencyId,
+      assessment
+    )
+    competencies[this.state.currentCompetencyId] = assessment
+    console.log(competencies)
+    console.log('================')
+    console.log(fullReport)
+    this.state.profile.customProps.competencies = competencies
     await this.state.profile.update()
     this.setState({
       isSubmitting: false,
+      profile: this.state.profile,
     })
-    window.UIkit.notification('Programming Competency Updated', { status: 'success' })
+    window.UIkit.notification('Competency Updated', { status: 'success' })
   }
 
   get mainContents() {
