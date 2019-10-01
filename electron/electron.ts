@@ -83,8 +83,12 @@ const createWindow = async () => {
 
 app.on('ready', createWindow)
 app.on('window-all-closed', () => {
-  obServer.stop()
-  djaliServices.stop()
+  if (obServer) {
+    obServer.stop()
+  }
+  if (djaliServices) {
+    djaliServices.stop()
+  }
   if (process.platform !== 'darwin') {
     app.quit()
   }
