@@ -2,13 +2,13 @@ import ProgrammerCompetency from './ProgrammerCompetency.json'
 
 export interface CompetencyQuestionInterface {
   category: string
-  subcategories: [
-    {
-      item: string
-      questions: string[]
-      assessment: number
-    }
-  ]
+  subcategories: CompetencySubcategoryInterface[]
+}
+
+export interface CompetencySubcategoryInterface {
+  item: string
+  questions: string[]
+  assessment: number
 }
 
 export interface CompetencyInterface {

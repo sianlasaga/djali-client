@@ -1,4 +1,8 @@
-import competencies, { CompetencyDictionaryInterface, CompetencyInterface } from '../competencies'
+import competencies, {
+  CompetencyDictionaryInterface,
+  CompetencyInterface,
+  CompetencySubcategoryInterface,
+} from '../competencies'
 
 export interface State {
   competencies: CompetencySelectorInterface[]
@@ -47,45 +51,56 @@ class CompetencySelectorModel implements State {
 
   constructor() {
     this.competencies = Object.values(competencies).map((competency, i) => {
-      competency.matrix.map(m => {
-        m.subcategories.map(s => {
-          s.questions.map(q => {
+      competency.matrix.map(matrix => {
+        matrix.subcategories.map(subCategory => {
+          subCategory.questions.map(question => {
             if (!this.descriptionIndex[competency.id]) {
               this.descriptionIndex[competency.id] = {}
             }
-            this.descriptionIndex[competency.id][s.item] = s.questions
-            s.assessment = -1
-            return q
+            this.descriptionIndex[competency.id][subCategory.item] = subCategory.questions
+            subCategory.assessment = -1
+            return question
           })
-          return s
+          return subCategory
         })
-        return m
+        return matrix
       })
       return { ...competency, checked: false, index: i }
     })
   }
 
-  public checkCompetency(i) {
-    const cmp = this.competencies
-    const rem = cmp.splice(i, 1)
-    rem[0].checked = true
-    const newCmp = [...rem, ...cmp]
-    console.log(rem)
-    this.competencies = newCmp
+  public load(rawCompetency: AssessmentSummary) {
+    if (!rawCompetency) {
+      return this
+    }
+    Object.keys(rawCompetency).forEach(selectedCompetency => {
+      const i = this.competencies.findIndex(el => el.id === selectedCompetency)
+      this.setCompetencyCheck(i, true)
+      this.competencies[i].matrix.forEach(matrix => {
+        matrix.subcategories = matrix.subcategories.map(subCategory => {
+          rawCompetency[selectedCompetency].forEach(competency => {
+            competency.items.forEach(item => {
+              if (subCategory.item === item.item) {
+                subCategory.assessment = item.assessment
+              }
+            })
+          })
+          return subCategory
+        })
+      })
+    })
     return this
   }
 
-  public uncheckCompetency(i) {
-    const cmp = this.competencies
-    const rem = cmp.splice(i, 1)
-    rem[0].checked = false
-    const newCmp = [...cmp, ...rem]
-    console.log(rem)
-    this.competencies = newCmp
+  public setCompetencyCheck(index: number, isChecked: boolean) {
+    let competencyClone = [...this.competencies]
+    competencyClone = competencyClone.splice(index, 1)
+    competencyClone[0].checked = isChecked
+    this.competencies = competencyClone
     return this
   }
 
-  public generateAssessmentSummary(id) {
+  public generateAssessmentSummary(id: string) {
     const assessmentSummary = [] as SingleAssessmentSummary[]
     this.competenciesIndex[id].matrix.forEach(category => {
       const categoryReport = {
