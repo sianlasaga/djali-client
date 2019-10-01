@@ -16,9 +16,8 @@ const Accordion = ({ data, ...props }: Props) => {
             return (
               <tr key={`trTable${i}`}>
                 <td>{comp.item}</td>
-                <td>{comp.description}</td>
-
-                <td>{comp.assessment === -1 ? 'No Assessment' : comp.assessment}</td>
+                <td>{comp.assessment !== -1 ? comp.description : 'Unrated'}</td>
+                <td>{comp.assessment}</td>
               </tr>
             )
           })
