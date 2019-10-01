@@ -70,6 +70,9 @@ class CompetencySelectorModel implements State {
   }
 
   public load(rawCompetency: AssessmentSummary) {
+    if (!rawCompetency) {
+      return this
+    }
     Object.keys(rawCompetency).forEach(selectedCompetency => {
       const i = this.competencies.findIndex(el => el.id === selectedCompetency)
       this.setCompetencyCheck(i, true)

@@ -312,9 +312,6 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
       assessment
     )
     competencies[this.state.currentCompetencyId] = assessment
-    console.log(competencies)
-    console.log('================')
-    console.log(fullReport)
     this.state.profile.customProps.competencies = competencies
     await this.state.profile.update()
     this.setState({
