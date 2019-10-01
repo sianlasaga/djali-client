@@ -1,17 +1,16 @@
-const electron = require('electron')
-const { app, BrowserWindow, Menu, shell, ipcMain } = electron
-const path = require('path')
-const isDev = require('electron-is-dev')
-const spawn = require('child_process').spawn
+import { spawn } from 'child_process'
+import { app, BrowserWindow, ipcMain, Menu, MenuItem, shell } from 'electron'
+import * as isDev from 'electron-is-dev'
+import * as fs from 'fs'
+import * as path from 'path'
 
 let server
 let services
-// -- Services -- //
-// Execute the server and service first before loading anything else.
+
 if (!isDev && !process.argv.includes('--noexternal')) {
   if (process.platform.startsWith('win')) {
-    var extob = path.join('external', 'openbazaard.exe')
-    var extserv = path.join('external', 'services.exe')
+    const extob = path.join('external', 'openbazaard.exe')
+    const extserv = path.join('external', 'services.exe')
     server = spawn(extob, ['start', '--testnet'])
     services = spawn(extserv, [])
   } else if (process.platform.startsWith('linux')) {
@@ -22,7 +21,6 @@ if (!isDev && !process.argv.includes('--noexternal')) {
   }
 }
 
-// -- Electron -- //
 let mainWindow
 
 const createWindow = async () => {
@@ -39,9 +37,9 @@ const createWindow = async () => {
   }
 
   const menuTemplate = [
-    { role: 'editMenu' },
-    { role: 'viewMenu' },
-    { role: 'windowMenu' },
+    new MenuItem({ role: 'editMenu' }),
+    new MenuItem({ role: 'viewMenu' }),
+    new MenuItem({ role: 'windowMenu' }),
     helpSubmenu,
   ]
 
@@ -80,14 +78,13 @@ const createWindow = async () => {
 
 app.on('ready', createWindow)
 app.on('window-all-closed', () => {
-  if (!isDev) {
-    try {
-      services.kill()
-    } catch {}
-    try {
-      server.kill()
-    } catch {}
-  }
+  // if (obServer) {
+  //   obServer.stop()
+  // }
+  // if (djaliServices) {
+  //   djaliServices.stop()
+  // }
+
   if (process.platform !== 'darwin') {
     app.quit()
   }

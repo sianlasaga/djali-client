@@ -15,17 +15,6 @@ declare global {
   }
 }
 
-const electron = window.require('electron')
-
-window.addEventListener(
-  'contextmenu',
-  e => {
-    e.preventDefault()
-    electron.ipcRenderer.send('contextmenu')
-  },
-  false
-)
-
 window.socket = new WebSocket(`${config.websocketHost}`)
 webSocketResponsesInstance.initialize()
 
