@@ -30,10 +30,10 @@ const CompetencyCard = (props: CompetencyCardProps) => {
           )
           return Object.keys(assessment).map(assessmentKey => {
             return (
-              <>
+              <React.Fragment key={assessmentKey}>
                 <h4>{assessment[assessmentKey].title}</h4>
                 <AccordianTable data={assessment[assessmentKey].assessment} />
-              </>
+              </React.Fragment>
             )
           })
         })}

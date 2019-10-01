@@ -95,7 +95,10 @@ class CompetencySelectorModel implements State {
   public setCompetencyCheck(index: number, isChecked: boolean) {
     const competencyClone = [...this.competencies]
     competencyClone[index].checked = isChecked
-    this.competencies = competencyClone
+    const checked = competencyClone.filter(competency => competency.checked)
+    const unchecked = competencyClone.filter(competency => !competency.checked)
+
+    this.competencies = [...checked, ...unchecked]
     return this
   }
 
