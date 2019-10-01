@@ -1,24 +1,29 @@
-import { spawn } from 'child_process'
 import { app, BrowserWindow, ipcMain, Menu, MenuItem, shell } from 'electron'
 import * as isDev from 'electron-is-dev'
-import * as fs from 'fs'
 import * as path from 'path'
 
-let server
-let services
+import LocalServer from './LocalServer'
+
+let obServer
+let djaliServices
 
 if (!isDev && !process.argv.includes('--noexternal')) {
-  if (process.platform.startsWith('win')) {
-    const extob = path.join('external', 'openbazaard.exe')
-    const extserv = path.join('external', 'services.exe')
-    server = spawn(extob, ['start', '--testnet'])
-    services = spawn(extserv, [])
-  } else if (process.platform.startsWith('linux')) {
-    const extob = path.join('external', 'openbazaard')
-    const extserv = path.join('external', 'services')
-    server = spawn(extob, ['start', '--testnet'])
-    services = spawn(extserv, [])
-  }
+  const fileName =
+    process.platform === 'linux' || process.platform === 'darwin'
+      ? 'openbazaard'
+      : 'openbazaard.exe'
+  obServer = new LocalServer({
+    name: 'Openbazaar',
+    filePath: 'external',
+    file: fileName,
+  })
+  djaliServices = new LocalServer({
+    name: 'Djali services',
+    filePath: 'external',
+    file: fileName,
+  })
+  obServer.start(['start', '--testnet'])
+  djaliServices.start()
 }
 
 let mainWindow
@@ -78,13 +83,8 @@ const createWindow = async () => {
 
 app.on('ready', createWindow)
 app.on('window-all-closed', () => {
-  // if (obServer) {
-  //   obServer.stop()
-  // }
-  // if (djaliServices) {
-  //   djaliServices.stop()
-  // }
-
+  obServer.stop()
+  djaliServices.stop()
   if (process.platform !== 'darwin') {
     app.quit()
   }
