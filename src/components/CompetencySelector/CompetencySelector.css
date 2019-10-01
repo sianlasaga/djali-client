@@ -7,9 +7,8 @@
     overflow-y: auto;
 }
 
-
 .competency-selector-ul li {
-    background-color: rgb(218, 218, 218);
+    background-color: #dadada;
     display: flex;
     flex-direction: row;
     font-weight: bold;
@@ -23,7 +22,7 @@
 
 .competency-selector-ul li.show {
     transition: all 0.5s ease-out;
-    animation-name: example;
+    animation-name: move-up;
     animation-duration: 1s;
 }
 
@@ -39,27 +38,16 @@
 .fix-margin {
     margin-top: 0px;
     border-radius: 3px !important;
-    background-color: rgb(170, 170, 170);
+    background-color: #aaaaaa;
 }
 
-@keyframes example {
+@keyframes move-up {
     from {
         margin-top: 0px;
         opacity: 0;
     }
     to {
         margin-top: -55px;
-        opacity: 0;
-    }
-}
-
-@keyframes example2 {
-    from {
-        margin-top: 55px;
-        opacity: 0;
-    }
-    to {
-        margin-top: 0px;
         opacity: 0;
     }
 }

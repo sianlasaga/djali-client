@@ -35,7 +35,7 @@ const DropdownSearchCompetency = ({
               value={val}
               onChange={e => searchChange(e.target.value)}
             />
-            <span data-uk-icon="icon: search; ratio: 1.2" className="blue-icon" />
+            <span data-uk-icon="icon: search; ratio: 1.2" className="color-primary" />
           </div>
         </div>
         {searchResults.length !== 0 && val !== '' ? (
@@ -43,7 +43,7 @@ const DropdownSearchCompetency = ({
             {searchResults.map((cmp, i) => (
               <li key={`${cmp.id}-dsc`} onClick={() => checker(cmp.id)}>
                 {cmp.title}
-                <span data-uk-icon="icon: plus" className="blue-icon" />
+                <span data-uk-icon="icon: plus" className="color-primary" />
               </li>
             ))}
           </ul>
