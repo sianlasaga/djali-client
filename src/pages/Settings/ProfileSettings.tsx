@@ -515,9 +515,13 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
                   <div className="uk-flex uk-flex-row uk-flex-center uk-margin-top">
                     <Button
                       className="uk-button uk-button-default uk-margin-right"
-                      onClick={this.handleCompetencyReset}
+                      onClick={() => {
+                        this.setState({
+                          showTest: false,
+                        })
+                      }}
                     >
-                      Clear
+                      Back
                     </Button>
                     <Button
                       className="uk-button uk-button-primary"
