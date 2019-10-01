@@ -74,9 +74,9 @@ class CompetencySelectorModel implements State {
       return this
     }
     Object.keys(rawCompetency).forEach(selectedCompetency => {
-      const i = this.competencies.findIndex(el => el.id === selectedCompetency)
-      this.setCompetencyCheck(i, true)
-      this.competencies[i].matrix.forEach(matrix => {
+      const competencyIndex = this.competencies.findIndex(el => el.id === selectedCompetency)
+      this.setCompetencyCheck(competencyIndex, true)
+      this.competencies[competencyIndex].matrix.forEach(matrix => {
         matrix.subcategories = matrix.subcategories.map(subCategory => {
           rawCompetency[selectedCompetency].forEach(competency => {
             competency.items.forEach(item => {
@@ -93,9 +93,8 @@ class CompetencySelectorModel implements State {
   }
 
   public setCompetencyCheck(index: number, isChecked: boolean) {
-    let competencyClone = [...this.competencies]
-    competencyClone = competencyClone.splice(index, 1)
-    competencyClone[0].checked = isChecked
+    const competencyClone = [...this.competencies]
+    competencyClone[index].checked = isChecked
     this.competencies = competencyClone
     return this
   }
@@ -121,7 +120,11 @@ class CompetencySelectorModel implements State {
 
   public generateFullAssessment(id: string, data: SingleAssessmentSummary[]) {
     const report = {
-      [id]: [] as FullAssessmentReport[],
+      [id]: {
+        title: this.competenciesIndex[id].title,
+        relatedCompetencies: this.competenciesIndex[id].relatedCompetencies,
+        assessment: [] as FullAssessmentReport[],
+      },
     }
     data.forEach(assessment => {
       const assessmentReportCategory = {
@@ -135,9 +138,22 @@ class CompetencySelectorModel implements State {
         itemReport.assessment = item.assessment
         assessmentReportCategory.items.push(itemReport)
       })
-      report[id].push(assessmentReportCategory)
+      report[id].assessment.push(assessmentReportCategory)
     })
     return report
+  }
+
+  public getCompetencyIdFromOccupationId(rawId: string) {
+    const competencyElement = this.competencies.find(competency => {
+      return competency.relatedCompetencies.reduce((accumulator: boolean, current: string) => {
+        return accumulator || rawId.startsWith(current)
+      }, false)
+    })
+    if (competencyElement) {
+      return competencyElement.id
+    } else {
+      return ''
+    }
   }
 }
 

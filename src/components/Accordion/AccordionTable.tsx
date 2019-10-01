@@ -6,12 +6,10 @@ interface Props {
 }
 
 const Accordion = ({ data, ...props }: Props) => {
-  console.log(data, 'data passed')
   return (
     <div id="main-div-acc">
       <ul id="accordion-main" data-uk-accordion>
         {data.map((cont, index) => {
-          console.log(cont, 'test')
           const el = cont.items.map((comp, i) => {
             return (
               <tr key={`trTable${i}`}>

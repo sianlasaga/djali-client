@@ -1,3 +1,4 @@
+import ActingCompetency from './ActingCompetency.json'
 import ProgrammerCompetency from './ProgrammerCompetency.json'
 
 export interface CompetencyQuestionInterface {
@@ -24,6 +25,7 @@ export interface CompetencyDictionaryInterface {
 
 const competencies = {
   programmerCompetency: ProgrammerCompetency as CompetencyInterface,
+  actingCompetency: ActingCompetency as CompetencyInterface,
 } as CompetencyDictionaryInterface
 
 export default competencies
