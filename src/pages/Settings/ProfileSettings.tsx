@@ -176,10 +176,6 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
       const skills = JSON.parse(decodeHtml(profileData.customProps.skills))
       const isAuthenticationActivated = await Profile.isAuthenticationActivated()
       const settings = await Settings.retrieve()
-      const moderatorProfilesRequest = settings.storeModerators.map(moderator =>
-        Profile.retrieve(moderator)
-      )
-      const moderatorProfiles = await Promise.all(moderatorProfilesRequest)
 
       const competencySelector = this.state.competencySelector.load(profileData.customProps
         .competencies as AssessmentSummary)
@@ -191,7 +187,16 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
         profile: profileData,
         isAuthenticationActivated,
         settings,
-        selectedModerators: moderatorProfiles,
+      })
+
+      setTimeout(async () => {
+        const moderatorProfilesRequest = settings.storeModerators.map(moderator =>
+          Profile.retrieve(moderator)
+        )
+        const moderatorProfiles = await Promise.all(moderatorProfilesRequest)
+        this.setState({
+          selectedModerators: moderatorProfiles,
+        })
       })
     } catch (error) {
       if (error.response) {
@@ -204,7 +209,7 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
     const moderatorListResponse = { data: webSocketResponsesInstance.moderatorIDs }
 
     if (moderatorListResponse.data) {
-      await moderatorListResponse.data.forEach(async (moderatorId, index) => {
+      moderatorListResponse.data.forEach(async (moderatorId, index) => {
         let moderator
         try {
           moderator = await Profile.retrieve(moderatorId)
@@ -245,9 +250,9 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
   }
 
   public selectCompetencyDropdown(id) {
-    const cmp = this.state.competencySelector.competencies
-    const i = cmp.findIndex(el => el.id === id)
-    const competencySelector = this.state.competencySelector.setCompetencyCheck(i, true)
+    const competency = this.state.competencySelector.competencies
+    const index = competency.findIndex(element => element.id === id)
+    const competencySelector = this.state.competencySelector.setCompetencyCheck(index, true)
     this.setState({
       competencySelector,
       seachResultComp: [],
@@ -255,22 +260,22 @@ class GeneralProfile extends Component<ProfileSettings, GeneralProfileState> {
     })
   }
 
-  public showTest(index, id: string) {
+  public showTest(index: number, id: string) {
     this.setState({
       currentCompetencyId: id,
     })
 
     const cs = this.state.competencySelector
     const compTemp = cs.competencies[index]
-    const skills = compTemp.matrix.map((c, i) => {
+    const skills = compTemp.matrix.map((competency, loopIndex) => {
       return {
-        title: c.category,
+        title: competency.category,
         component: (
           <RoundSelector
             handleSelect={this.handleRoundSelector}
             id={compTemp.id}
             compIndex={index}
-            matrixIndex={i}
+            matrixIndex={loopIndex}
             competency={this.state.competencySelector}
           />
         ),
