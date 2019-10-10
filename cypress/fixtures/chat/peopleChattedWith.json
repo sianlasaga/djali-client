@@ -1,0 +1,16 @@
+[
+  {
+    "lastMessage": "ood",
+    "outgoing": false,
+    "peerId": "peerId1",
+    "timestamp": "2019-10-09T17:25:22.8465819+08:00",
+    "unread": 2
+  },
+  {
+    "lastMessage": "2",
+    "outgoing": true,
+    "peerId": "peerId2",
+    "timestamp": "2019-10-09T17:19:16.4312021+08:00",
+    "unread": 3
+  }
+]
