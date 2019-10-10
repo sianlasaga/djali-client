@@ -61,6 +61,41 @@ context('File Dispute', () => {
 
   })
 
+  it('should display chat box information', () => {
+    cy.route({
+      method: 'GET',
+      url: 'http://localhost:4002/ob/order/sample_order',
+      response: 'fixture:orders/resolved_disputed_order.json'
+    })
+
+    cy.get('#not-selected > ul > .uk-padding > .list-item').click()
+    cy.get('#full-size > #messages-display-main > #messages-chat-cont > #message-input-cont > .message-input')
+      .type('A Sample Discussion Message to send')
+    cy.get('#img-send')
+      .click()
+
+    cy.wait('@sendDiscussionMsg').then((xhr) => {
+      expect(xhr.requestBody.processedMessage).to.equal('A Sample Discussion Message to send')
+      expect(xhr.requestBody.outgoing).to.equal(true)
+    })
+
+    setTimeout(() => {
+      webSocketMock.sendMsg(`{"message":
+        {
+          "message":"A Sample Discussion Message that Responds",
+          "messageId":"QmT3WwLjh6f9jkAJFM1GN7Udo8R8tAKwcL7LTRNTvM6RAu",
+          "outgoing":false,
+          "peerId":"QmYuz7HMF5SDMKjyUj3zCTqiq2rhAkWpDoxjhre8MLiHPN",
+          "read":false,
+          "subject":"sample_order",
+          "timestamp":"2019-10-09T19:04:29.7451483+08:00"
+        }
+      }`)
+    }, 5000)
+
+    cy.contains('A Sample Discussion Message that Responds')
+  })
+
   it('should successfully file a dispute', () => {
     cy.route({
       method: 'GET',
@@ -160,40 +195,5 @@ context('File Dispute', () => {
 
     cy.contains('RESOLVED')
     cy.get('#stepperMain > :nth-child(5)').should('have.class', 'stepperCircle')
-  })
-
-  it('should display chat box information', () => {
-    cy.route({
-      method: 'GET',
-      url: 'http://localhost:4002/ob/order/sample_order',
-      response: 'fixture:orders/resolved_disputed_order.json'
-    })
-
-    cy.get('#not-selected > ul > .uk-padding > .list-item').click()
-    cy.get('#full-size > #messages-display-main > #messages-chat-cont > #message-input-cont > .message-input')
-      .type('A Sample Discussion Message to send')
-    cy.get('#img-send')
-      .click()
-
-    cy.wait('@sendDiscussionMsg').then((xhr) => {
-      expect(xhr.requestBody.processedMessage).to.equal('A Sample Discussion Message to send')
-      expect(xhr.requestBody.outgoing).to.equal(true)
-    })
-
-    setTimeout(() => {
-      webSocketMock.sendMsg(`{"message":
-        {
-          "message":"A Sample Discussion Message that Responds",
-          "messageId":"QmT3WwLjh6f9jkAJFM1GN7Udo8R8tAKwcL7LTRNTvM6RAu",
-          "outgoing":false,
-          "peerId":"QmYuz7HMF5SDMKjyUj3zCTqiq2rhAkWpDoxjhre8MLiHPN",
-          "read":false,
-          "subject":"sample_order",
-          "timestamp":"2019-10-09T19:04:29.7451483+08:00"
-        }
-      }`)
-    }, 2000)
-
-    cy.contains('A Sample Discussion Message that Responds')
   })
 })
