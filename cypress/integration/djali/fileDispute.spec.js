@@ -162,13 +162,12 @@ context('File Dispute', () => {
     cy.get('#stepperMain > :nth-child(5)').should('have.class', 'stepperCircle')
   })
 
-  it.only('should display chat boxes information cchu chu wap', () => {
+  it('should display chat box information', () => {
     cy.route({
       method: 'GET',
       url: 'http://localhost:4002/ob/order/sample_order',
       response: 'fixture:orders/resolved_disputed_order.json'
     })
-
 
     cy.get('#not-selected > ul > .uk-padding > .list-item').click()
     cy.get('#full-size > #messages-display-main > #messages-chat-cont > #message-input-cont > .message-input')
