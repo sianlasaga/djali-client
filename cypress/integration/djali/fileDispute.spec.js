@@ -58,7 +58,6 @@ context('File Dispute', () => {
         cy.stub(win, "WebSocket", url => new WebSocket('ws://localhost:4002/ws'))
       }
     })
-
   })
 
   it('should display chat box information', () => {

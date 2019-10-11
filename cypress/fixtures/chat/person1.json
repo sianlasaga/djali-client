@@ -1,17 +1,17 @@
 [{
-  "message": "ood",
+  "message": "last message on peer 1",
   "messageId": "QmWNpvWhQyAbJJ38g87hb7LsEbvH7tJGcbxPsDub9k2H5r",
   "outgoing": false,
-  "peerId": "QmW7yRaQMQQTe1gvC1SWMzRLDnaN3wUve6aYrYsqMB42FK",
+  "peerId": "peerId1",
   "read": false,
   "subject": "",
   "timestamp": "2019-10-09T17:25:22.8465819+08:00"
 },
 {
-  "message": "wood",
+  "message": "1st message",
   "messageId": "QmeDkmBUPTJvBy5v74ikcvBZZdhbV7Yz7gYQBdxvpqnsta",
-  "outgoing": false,
-  "peerId": "QmW7yRaQMQQTe1gvC1SWMzRLDnaN3wUve6aYrYsqMB42FK",
+  "outgoing": true,
+  "peerId": "peerId1",
   "read": false,
   "subject": "",
   "timestamp": "2019-10-09T17:25:07.9522061+08:00"
