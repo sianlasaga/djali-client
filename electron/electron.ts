@@ -93,11 +93,12 @@ const createWindow = async () => {
     mainWindow.send('crashReporterConfig', crashReporterConfig)
   })
 
-  ipcMain.on('requestCrashReporting', () => {
+  ipcMain.on('requestUserPreferences', () => {
     mainWindow.send('userPreferences', userPreferences)
   })
 
   ipcMain.on('updateUserPreferences', (e, data: UserPreferences) => {
+    userPreferences = data
     createUserPref(data)
   })
 

@@ -31,7 +31,9 @@ if (isElectron()) {
     false
   )
 
-  ipcRenderer.send('requestCrashReporterConfig', (e, crashReporterConfig) => {
+  ipcRenderer.send('requestCrashReporterConfig')
+
+  ipcRenderer.once('crashReporterConfig', (e, crashReporterConfig) => {
     crashReporter.start(crashReporterConfig)
   })
 
