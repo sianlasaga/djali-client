@@ -1,11 +1,15 @@
-import { app, BrowserWindow, ipcMain, Menu, MenuItem, shell } from 'electron'
+import { app, BrowserWindow, crashReporter, ipcMain, Menu, MenuItem, remote, shell } from 'electron'
 import * as isDev from 'electron-is-dev'
+import * as fs from 'fs'
 import * as path from 'path'
 
 import LocalServer from './LocalServer'
 
+let mainWindow
 let obServer
 let djaliServices
+let enableCrashReporting = false
+const userPrefPath = path.join((app || remote.app).getPath('userData'), 'user-preferences.json')
 
 if (!isDev && !process.argv.includes('--noexternal')) {
   const fileName =
@@ -26,7 +30,29 @@ if (!isDev && !process.argv.includes('--noexternal')) {
   djaliServices.start()
 }
 
-let mainWindow
+if (!fs.existsSync(userPrefPath)) {
+  console.log(`creating user preferences...`)
+  fs.writeFile(userPrefPath, JSON.stringify({ enableCrashReporting: false }), err => {
+    if (err) {
+      console.log('Error creating user preferences file.')
+    }
+  })
+} else {
+  try {
+    const userPref = JSON.parse(fs.readFileSync(userPrefPath, 'utf8'))
+    enableCrashReporting = userPref.enableCrashReporting
+  } catch (error) {
+    console.log(`Error while reading user-preferences.json: ${error}`)
+  }
+}
+console.log(enableCrashReporting)
+
+crashReporter.start({
+  productName: 'Djali',
+  companyName: 'Djali Foundation',
+  submitURL: 'http://localhost:1127/crashreports', // TODO: Update to deployed URL
+  uploadToServer: enableCrashReporting,
+})
 
 const createWindow = async () => {
   const helpSubmenu = {
