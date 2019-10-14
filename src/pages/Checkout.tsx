@@ -15,6 +15,7 @@ import Listing from '../models/Listing'
 import Order from '../models/Order'
 import Profile from '../models/Profile'
 
+import { CircleSpinner } from '../components/Spinner'
 import PaymentNotification, { Notification } from '../interfaces/PaymentNotification'
 import currency from '../models/Currency'
 import './Checkout.css'
@@ -26,7 +27,9 @@ interface RouteProps {
   quantity: string
 }
 
-interface CheckoutProps extends RouteComponentProps<RouteProps> {}
+interface CheckoutProps extends RouteComponentProps<RouteProps> {
+  currentUser: Profile
+}
 
 interface CheckoutState {
   [key: string]: any
@@ -46,18 +49,23 @@ interface CheckoutState {
   coupon: string
   discount: string
   totalAmount: number
+  currentUser: Profile
+  isRequestingMerchantAddress: boolean
+  isLoading: boolean
 }
 
 class Checkout extends Component<CheckoutProps, CheckoutState> {
-  private socket: WebSocket
   private modal: React.ReactNode
 
   constructor(props: CheckoutProps) {
     super(props)
     const listing = new Listing()
     const order = new Order()
+    const profile = new Profile()
 
     this.state = {
+      currentUser: profile,
+      isLoading: true,
       amountToPay: 0,
       estimate: 0,
       isPending: false,
@@ -83,6 +91,7 @@ class Checkout extends Component<CheckoutProps, CheckoutState> {
       selectedModeratorID: '',
       isPaymentSchemeDirect: true,
       isRequestingPaymentInformation: false,
+      isRequestingMerchantAddress: false,
       coupon: '',
       discount: '',
       totalAmount: 0,
@@ -91,7 +100,6 @@ class Checkout extends Component<CheckoutProps, CheckoutState> {
     this.handleChange = this.handleChange.bind(this)
     this.handlePlaceOrder = this.handlePlaceOrder.bind(this)
     this.handleMoreInfo = this.handleMoreInfo.bind(this)
-    this.socket = window.socket
     this.estimate = this.estimate.bind(this)
   }
 
@@ -100,10 +108,10 @@ class Checkout extends Component<CheckoutProps, CheckoutState> {
     const quantity = this.props.match.params.quantity
     const listing = await Listing.retrieve(id)
 
-    const profile = await Profile.retrieve()
+    const currentUser = this.props.currentUser
     const moderatorListResponse = listing.listing.moderators
 
-    const profileIndex = moderatorListResponse.indexOf(profile.peerID)
+    const profileIndex = moderatorListResponse.indexOf(currentUser.peerID)
     if (profileIndex > 0) {
       moderatorListResponse.splice(profileIndex, 1)
     }
@@ -127,17 +135,18 @@ class Checkout extends Component<CheckoutProps, CheckoutState> {
     }
 
     this.setState({
+      isLoading: false,
       listing: listing.listing,
       quantity: Number(quantity),
-      profile,
+      currentUser,
       totalAmount: currency.convert(
         listing.listing.item.price * Number(quantity),
         listing.listing.metadata.pricingCurrency,
-        profile.preferences.fiat
+        currentUser.preferences.fiat
       ),
     })
 
-    this.socket.onmessage = event => {
+    window.socket.addEventListener('message', event => {
       const rawData = JSON.parse(event.data)
       if (rawData.notification) {
         const data = JSON.parse(event.data) as PaymentNotification
@@ -154,7 +163,7 @@ class Checkout extends Component<CheckoutProps, CheckoutState> {
           }
         )
       }
-    }
+    })
   }
 
   public handleMoreInfo(moderator: Profile) {
@@ -166,6 +175,9 @@ class Checkout extends Component<CheckoutProps, CheckoutState> {
   }
 
   public componentWillUnmount() {
+    if (!this.modal) {
+      return
+    }
     window.UIkit.modal(this.modal).hide()
   }
 
@@ -176,7 +188,165 @@ class Checkout extends Component<CheckoutProps, CheckoutState> {
       amountToPay,
       paymentAddress,
       isRequestingPaymentInformation,
+      isRequestingMerchantAddress,
+      isLoading,
     } = this.state
+
+    if (isLoading) {
+      return (
+        <div className="uk-flex uk-flex-row uk-flex-center">
+          <div className="uk-margin-top">
+            <CircleSpinner message={`${this.state.loadingStatus}...`} />
+          </div>
+        </div>
+      )
+    }
+
+    let interactivePane
+
+    if (isRequestingPaymentInformation) {
+      interactivePane = (
+        <div>
+          <PaymentQRCard
+            address={paymentAddress}
+            amount={amountToPay}
+            handleCopyToClipboard={this.copyToClipboard}
+            cryptocurrency={this.state.selectedCurrency}
+            memo={this.state.memo}
+            handlePay={async orderDetails => {
+              const element = document.getElementById('dropID')
+              if (element) {
+                window.UIkit.dropdown(element).hide()
+              }
+              await this.state.order.pay(orderDetails)
+            }}
+          />
+        </div>
+      )
+    } else if (isRequestingMerchantAddress) {
+      interactivePane = (
+        <div className="uk-margin-bottom">
+          <div className="uk-card uk-card-default uk-card-body uk-card-small">
+            <div className="uk-flex uk-flex-center uk-flex-column uk-text-center">
+              <div className="uk-align-center" uk-spinner="ratio: 3" />
+              <p>Requesting Merchant Address...</p>
+            </div>
+          </div>
+        </div>
+      )
+    } else {
+      interactivePane = (
+        <div>
+          <div className="uk-margin-bottom">
+            <div className="uk-card uk-card-default uk-card-body uk-card-small">
+              <h3>Coupon</h3>
+              <div className="uk-margin">
+                <form
+                  onSubmit={async evt => {
+                    evt.preventDefault()
+                    await this.handleCouponApply()
+                  }}
+                  className="uk-flex uk-flex-row"
+                >
+                  <input
+                    className="uk-input"
+                    placeholder="Enter coupon code"
+                    onChange={e => {
+                      this.handleChange('coupon', e.target.value)
+                    }}
+                    value={this.state.coupon}
+                  />
+                  <button type="submit" className="uk-button uk-button-primary uk-margin-left">
+                    Apply
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div className="uk-margin-bottom">
+            <div className="uk-card uk-card-default uk-card-body uk-card-small">
+              <h3>Payment Scheme</h3>
+              <div className="uk-margin uk-grid-small uk-child-width-auto uk-grid">
+                <label>
+                  <input
+                    className="uk-radio"
+                    type="radio"
+                    name="isPaymentSchemeDirect"
+                    checked={this.state.isPaymentSchemeDirect}
+                    onClick={() => {
+                      this.setState({
+                        isPaymentSchemeDirect: true,
+                      })
+                    }}
+                  />{' '}
+                  Direct Payment
+                </label>
+                {listing.moderators.length > 0 ? (
+                  <label>
+                    <input
+                      className="uk-radio"
+                      type="radio"
+                      name="isPaymentSchemeDirect"
+                      checked={!this.state.isPaymentSchemeDirect}
+                      onClick={() => {
+                        this.setState({
+                          isPaymentSchemeDirect: false,
+                        })
+                      }}
+                    />{' '}
+                    Moderated Payment
+                  </label>
+                ) : null}
+              </div>
+              {!this.state.isPaymentSchemeDirect ? (
+                <div className="uk-margin">
+                  {this.state.availableModerators.map((data, index) => {
+                    if (data.name) {
+                      return (
+                        <ModeratorCard
+                          key={index}
+                          profile={data}
+                          currIndex={this.state.selectedModeratorID}
+                          handleSelect={() => {
+                            this.setState({ selectedModeratorID: data.peerID })
+                          }}
+                          id={data.peerID}
+                        >
+                          <a
+                            id="moderator-card-more-link"
+                            onClick={() => this.handleMoreInfo(data)}
+                          >
+                            More...
+                          </a>
+                        </ModeratorCard>
+                      )
+                    }
+                  })}
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <div className="uk-margin-bottom">
+            <div className="uk-card uk-card-default uk-card-body uk-card-small">
+              <h3>Additional Information</h3>
+              <div className="uk-margin">
+                <FormLabel label="MEMO" />
+                <textarea
+                  rows={4}
+                  className="uk-textarea"
+                  placeholder="Provide additional details for the vendor (Optional)"
+                  onChange={e => {
+                    this.handleChange('memo', e.target.value)
+                  }}
+                  value={this.state.memo}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div id="checkout-container" className="uk-margin background-body">
         {listing.isOwner ? (
@@ -189,157 +359,8 @@ class Checkout extends Component<CheckoutProps, CheckoutState> {
             <div className="uk-margin-bottom">
               <ListingCheckoutCard listing={listing} quantity={quantity} />
             </div>
-            {isRequestingPaymentInformation ? (
-              <div>
-                <PaymentQRCard
-                  address={paymentAddress}
-                  amount={amountToPay}
-                  handleCopyToClipboard={this.copyToClipboard}
-                  cryptocurrency={this.state.selectedCurrency}
-                  memo={this.state.memo}
-                  handlePay={async orderDetails => {
-                    const element = document.getElementById('dropID')
-                    if (element) {
-                      window.UIkit.dropdown(element).hide()
-                    }
-                    await this.state.order.pay(orderDetails)
-                  }}
-                />
-              </div>
-            ) : (
-              <div>
-                {/* TODO: Implementation */}
-                {/* <div className="uk-margin-bottom">
-                // TODO: Update shipping address
-                <AddressCard
-                  header="Shipping Address"
-                  location={{
-                    latitude: '105.1',
-                    longitude: '12.2',
-                    addressOne: 'Yellow House',
-                    addressTwo: 'San Isidro',
-                    city: 'Iloilo City',
-                    country: 'ph',
-                    plusCode: '14+E21',
-                    state: 'Iloilo',
-                    zipCode: '5000',
-                  }}
-                  handleSelectAddress={() => {
-                    // TODO: Update method
-                  }}
-                />
-              </div> */}
-                <div className="uk-margin-bottom">
-                  <div className="uk-card uk-card-default uk-card-body uk-card-small">
-                    <h3>Coupon</h3>
-                    <div className="uk-margin">
-                      <form
-                        onSubmit={async evt => {
-                          evt.preventDefault()
-                          await this.handleCouponApply()
-                        }}
-                        className="uk-flex uk-flex-row"
-                      >
-                        <input
-                          className="uk-input"
-                          placeholder="Enter coupon code"
-                          onChange={e => {
-                            this.handleChange('coupon', e.target.value)
-                          }}
-                          value={this.state.coupon}
-                        />
-                        <button
-                          type="submit"
-                          className="uk-button uk-button-primary uk-margin-left"
-                        >
-                          Apply
-                        </button>
-                      </form>
-                    </div>
-                  </div>
-                </div>
-                <div className="uk-margin-bottom">
-                  <div className="uk-card uk-card-default uk-card-body uk-card-small">
-                    <h3>Payment Scheme</h3>
-                    <div className="uk-margin uk-grid-small uk-child-width-auto uk-grid">
-                      <label>
-                        <input
-                          className="uk-radio"
-                          type="radio"
-                          name="isPaymentSchemeDirect"
-                          checked={this.state.isPaymentSchemeDirect}
-                          onClick={() => {
-                            this.setState({
-                              isPaymentSchemeDirect: true,
-                            })
-                          }}
-                        />{' '}
-                        Direct Payment
-                      </label>
-                      {listing.moderators.length > 0 ? (
-                        <label>
-                          <input
-                            className="uk-radio"
-                            type="radio"
-                            name="isPaymentSchemeDirect"
-                            checked={!this.state.isPaymentSchemeDirect}
-                            onClick={() => {
-                              this.setState({
-                                isPaymentSchemeDirect: false,
-                              })
-                            }}
-                          />{' '}
-                          Moderated Payment
-                        </label>
-                      ) : null}
-                    </div>
-                    {!this.state.isPaymentSchemeDirect ? (
-                      <div className="uk-margin">
-                        {this.state.availableModerators.map((data, index) => {
-                          if (data.name) {
-                            return (
-                              <ModeratorCard
-                                key={index}
-                                profile={data}
-                                currIndex={this.state.selectedModeratorID}
-                                handleSelect={() => {
-                                  this.setState({ selectedModeratorID: data.peerID })
-                                }}
-                                id={data.peerID}
-                              >
-                                <a
-                                  id="moderator-card-more-link"
-                                  onClick={() => this.handleMoreInfo(data)}
-                                >
-                                  More...
-                                </a>
-                              </ModeratorCard>
-                            )
-                          }
-                        })}
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-                <div className="uk-margin-bottom">
-                  <div className="uk-card uk-card-default uk-card-body uk-card-small">
-                    <h3>Additional Information</h3>
-                    <div className="uk-margin">
-                      <FormLabel label="MEMO" />
-                      <textarea
-                        rows={4}
-                        className="uk-textarea"
-                        placeholder="Provide additional details for the vendor (Optional)"
-                        onChange={e => {
-                          this.handleChange('memo', e.target.value)
-                        }}
-                        value={this.state.memo}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+
+            {interactivePane}
           </div>
           <div className="uk-flex uk-padding-small uk-width-1-3">
             <CheckoutPaymentCard
@@ -378,6 +399,7 @@ class Checkout extends Component<CheckoutProps, CheckoutState> {
               </Link>
             </div>
           </div>
+
           <ModeratorInfoModal profile={this.state.selectedModerator} />
         </div>
       </div>
@@ -453,6 +475,7 @@ class Checkout extends Component<CheckoutProps, CheckoutState> {
   private async handlePlaceOrder() {
     this.setState({
       isPending: true,
+      isRequestingMerchantAddress: true,
     })
 
     let paymentInformation
@@ -491,11 +514,12 @@ class Checkout extends Component<CheckoutProps, CheckoutState> {
     order.id = paymentInformation.orderId
 
     this.setState({
-      paymentAddress: paymentInformation.paymentAddress,
       amountToPay: paymentInformation.amount,
       isPending: true,
+      isRequestingMerchantAddress: false,
       isRequestingPaymentInformation: true,
       order,
+      paymentAddress: paymentInformation.paymentAddress,
     })
   }
 }

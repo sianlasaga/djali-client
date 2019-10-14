@@ -15,10 +15,12 @@ import DisputePayoutSegment from '../components/Segment/DisputePayoutSegment'
 import { CircleSpinner } from '../components/Spinner'
 import Stepper from '../components/Stepper/Stepper'
 import config from '../config'
+import Message from '../interfaces/Message'
 import PaymentNotification from '../interfaces/PaymentNotification'
 import Dispute from '../models/Dispute'
 import GroupMessage from '../models/GroupMessage'
 import Profile from '../models/Profile'
+import decodeHtml from '../utils/Unescape'
 import './DisputeView.css'
 
 interface RouteParams {
@@ -73,6 +75,7 @@ class DisputeView extends React.Component<DisputeViewProps, DisputeViewState> {
     this.handleInputChange = this.handleInputChange.bind(this)
     this.handleContentChange = this.handleContentChange.bind(this)
     this.handleDisputeFormSubmit = this.handleDisputeFormSubmit.bind(this)
+    this.handleWebSocket = this.handleWebSocket.bind(this)
   }
 
   public async componentDidMount() {
@@ -89,47 +92,57 @@ class DisputeView extends React.Component<DisputeViewProps, DisputeViewState> {
       groupMessage.peerIds.push(dispute.moderator.peerID)
     }
 
-    this.setState({
-      dispute,
-      isLoading: false,
-      groupMessage,
-      id,
-    })
-
-    window.socket.onmessage = async message => {
-      const info = JSON.parse(message.data)
-      if (info.notification) {
-        const notification = info as PaymentNotification
-
-        if (
-          notification.notification.type &&
-          ![
-            'disputeUpdate',
-            'disputeOpen',
-            'disputeClose',
-            'disputeAccepted',
-            'buyerDisputeTimeout',
-            'buyerDisputeExpiry',
-            'moderatorDisputeExpiry',
-            'vendorDisputeTimeout',
-          ].includes(notification.notification.type)
-        ) {
-          return
-        }
-
-        if (notification.notification.orderId === id) {
-          const disputeUpdate = await Dispute.retrieve(id)
-          this.setState({
-            dispute: disputeUpdate,
-          })
-        }
+    this.setState(
+      {
+        dispute,
+        isLoading: false,
+        groupMessage,
+        id,
+      },
+      () => {
+        window.socket.addEventListener('message', this.handleWebSocket)
       }
-      if (info.message) {
-        groupMessage.messages.push(info.message)
+    )
+  }
+
+  public async handleWebSocket(message) {
+    const info = JSON.parse(message.data)
+    if (info.notification) {
+      const notification = info as PaymentNotification
+
+      if (
+        notification.notification.type &&
+        ![
+          'disputeUpdate',
+          'disputeOpen',
+          'disputeClose',
+          'disputeAccepted',
+          'buyerDisputeTimeout',
+          'buyerDisputeExpiry',
+          'moderatorDisputeExpiry',
+          'vendorDisputeTimeout',
+        ].includes(notification.notification.type)
+      ) {
+        return
+      }
+
+      if (notification.notification.orderId === this.state.id) {
+        const disputeUpdate = await Dispute.retrieve(this.state.id)
         this.setState({
-          groupMessage,
+          dispute: disputeUpdate,
         })
       }
+    }
+    if (info.message) {
+      if (info.message.subject !== this.state.id) {
+        return
+      }
+      const groupMessage = this.state.groupMessage
+      const messages = [...groupMessage.messages, info.message]
+      groupMessage.messages = messages
+      this.setState({
+        groupMessage,
+      })
     }
   }
 
@@ -140,7 +153,7 @@ class DisputeView extends React.Component<DisputeViewProps, DisputeViewState> {
       return (
         <div className="uk-flex uk-flex-row uk-flex-center">
           <div className="uk-margin-top">
-            <CircleSpinner message={`${this.state.loadingStatus}...`} />
+            <CircleSpinner message={`Loading...`} />
           </div>
         </div>
       )
@@ -283,7 +296,7 @@ class DisputeView extends React.Component<DisputeViewProps, DisputeViewState> {
               }
             >
               <div className="row-text">
-                <p className="color-secondary text-fix">{dispute.claim}</p>
+                <p className="color-secondary text-fix">{decodeHtml(dispute.claim)}</p>
               </div>
             </SimpleBorderedSegment>
           </OrderSummaryItemSegment>

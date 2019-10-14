@@ -94,6 +94,7 @@ class OrderView extends React.Component<OrderViewProps, OrderViewState> {
     this.handleStarRatingChange = this.handleStarRatingChange.bind(this)
     this.handleOrderDispute = this.handleOrderDispute.bind(this)
     this.handleOrderFundRelease = this.handleOrderFundRelease.bind(this)
+    this.handleWebSocket = this.handleWebSocket.bind(this)
   }
 
   public async componentDidMount() {
@@ -117,31 +118,17 @@ class OrderView extends React.Component<OrderViewProps, OrderViewState> {
       groupMessage.peerIds.push(order.contract.buyerOrder.payment.moderator)
     }
 
-    this.setState({
-      order,
-      isLoading: false,
-      groupMessage,
-      id,
-    })
-
-    window.socket.onmessage = async message => {
-      const info = JSON.parse(message.data)
-      if (info.notification && info.notification.type) {
-        const payment = info as PaymentNotification
-        if (payment.notification.orderId === id) {
-          const orderUpdate = await Order.retrieve(id)
-          this.setState({
-            order: orderUpdate,
-          })
-        }
+    this.setState(
+      {
+        order,
+        isLoading: false,
+        groupMessage,
+        id,
+      },
+      () => {
+        window.socket.addEventListener('message', this.handleWebSocket)
       }
-      if (info.message) {
-        groupMessage.messages.push(info.message)
-        this.setState({
-          groupMessage,
-        })
-      }
-    }
+    )
 
     window.UIkit.util.on('#js-modal-prompt', 'click', e => {
       e.preventDefault()
@@ -153,6 +140,30 @@ class OrderView extends React.Component<OrderViewProps, OrderViewState> {
         }
       })
     })
+  }
+
+  public async handleWebSocket(message) {
+    const info = JSON.parse(message.data)
+    if (info.notification && info.notification.type) {
+      const payment = info as PaymentNotification
+      if (payment.notification.orderId === this.state.id) {
+        const orderUpdate = await Order.retrieve(this.state.id)
+        this.setState({
+          order: orderUpdate,
+        })
+      }
+    }
+    if (info.message) {
+      if (info.message.subject !== this.state.id) {
+        return
+      }
+      const groupMessage = this.state.groupMessage
+      const messages = [...groupMessage.messages, info.message]
+      groupMessage.messages = messages
+      this.setState({
+        groupMessage,
+      })
+    }
   }
 
   public renderModal() {
@@ -283,7 +294,7 @@ class OrderView extends React.Component<OrderViewProps, OrderViewState> {
 
     if (order.step === 7) {
       steps = ['PENDING', 'PAID', 'ACCEPTED', 'REFUNDED']
-    } else if (order.step === 9) {
+    } else if (order.step === 11) {
       steps = ['DISPUTED', 'EXPIRED', 'DECIDED', 'RESOLVED']
       currentStep = 1
     } else if (order.step === -1) {
@@ -348,7 +359,7 @@ class OrderView extends React.Component<OrderViewProps, OrderViewState> {
             </OrderSummaryItemSegment>
           </div>
         ) : null}
-        {order.step === 11 ? (
+        {order.step === 10 ? (
           <div className="uk-margin-bottom">
             <OrderSummaryItemSegment
               title="Dispute Closed"
@@ -369,7 +380,7 @@ class OrderView extends React.Component<OrderViewProps, OrderViewState> {
             </OrderSummaryItemSegment>
           </div>
         ) : null}
-        {order.step >= 10 ? (
+        {order.step >= 9 && order.step < 11 ? (
           <div className="uk-margin-bottom">
             <OrderSummaryItemSegment
               title="Dispute Payout"
@@ -377,10 +388,10 @@ class OrderView extends React.Component<OrderViewProps, OrderViewState> {
             >
               <SimpleBorderedSegment
                 sideButtons={
-                  order.step === 10 ? (
+                  order.step === 9 ? (
                     <div className="uk-flex uk-flex-row uk-flex-middle uk-flex-around">
                       <Button
-                        className="uk-button uk-button-default uk-margin-small-left max-content-width button-small-padding"
+                        className="uk-button uk-button-primary uk-margin-small-left max-content-width button-small-padding"
                         onClick={this.handleOrderFundRelease}
                         showSpinner={this.state.isSendingRequest}
                       >
