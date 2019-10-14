@@ -5,11 +5,26 @@ import * as path from 'path'
 
 import LocalServer from './LocalServer'
 
+interface UserPreferences {
+  enableCrashReporting: boolean
+  [key: string]: any
+}
+
 let mainWindow
 let obServer
 let djaliServices
-let enableCrashReporting = false
+let userPreferences: UserPreferences = { enableCrashReporting: false }
 const userPrefPath = path.join((app || remote.app).getPath('userData'), 'user-preferences.json')
+const crashReporterConfig = {
+  productName: 'Djali',
+  companyName: 'Djali Foundation',
+  submitURL: 'http://localhost:1127/crashreports', // TODO: Update to deployed URL
+  uploadToServer: userPreferences.enableCrashReporting,
+}
+
+const createUserPref = (data: UserPreferences) => {
+  fs.writeFileSync(userPrefPath, JSON.stringify(data))
+}
 
 if (!isDev && !process.argv.includes('--noexternal')) {
   const fileName =
@@ -32,27 +47,20 @@ if (!isDev && !process.argv.includes('--noexternal')) {
 
 if (!fs.existsSync(userPrefPath)) {
   console.log(`creating user preferences...`)
-  fs.writeFile(userPrefPath, JSON.stringify({ enableCrashReporting: false }), err => {
-    if (err) {
-      console.log('Error creating user preferences file.')
-    }
-  })
+  try {
+    createUserPref(userPreferences)
+  } catch (error) {
+    console.log(`Error creating user-preferences.json: ${error}`)
+  }
 } else {
   try {
-    const userPref = JSON.parse(fs.readFileSync(userPrefPath, 'utf8'))
-    enableCrashReporting = userPref.enableCrashReporting
+    userPreferences = JSON.parse(fs.readFileSync(userPrefPath, 'utf8'))
   } catch (error) {
     console.log(`Error while reading user-preferences.json: ${error}`)
   }
 }
-console.log(enableCrashReporting)
 
-crashReporter.start({
-  productName: 'Djali',
-  companyName: 'Djali Foundation',
-  submitURL: 'http://localhost:1127/crashreports', // TODO: Update to deployed URL
-  uploadToServer: enableCrashReporting,
-})
+crashReporter.start(crashReporterConfig)
 
 const createWindow = async () => {
   const helpSubmenu = {
@@ -79,6 +87,18 @@ const createWindow = async () => {
 
   ipcMain.on('contextmenu', () => {
     menu.popup()
+  })
+
+  ipcMain.on('requestCrashReporterConfig', () => {
+    mainWindow.send('crashReporterConfig', crashReporterConfig)
+  })
+
+  ipcMain.on('requestCrashReporting', () => {
+    mainWindow.send('userPreferences', userPreferences)
+  })
+
+  ipcMain.on('updateUserPreferences', (e, data: UserPreferences) => {
+    createUserPref(data)
   })
 
   await app.whenReady()

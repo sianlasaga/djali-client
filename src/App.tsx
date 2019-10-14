@@ -20,7 +20,7 @@ if (isElectron()) {
   require('./config/notification.css')
 
   const electron = window.require('electron')
-  const { ipcRenderer } = electron
+  const { ipcRenderer, crashReporter } = electron
 
   window.addEventListener(
     'contextmenu',
@@ -30,6 +30,10 @@ if (isElectron()) {
     },
     false
   )
+
+  ipcRenderer.send('requestCrashReporterConfig', (e, crashReporterConfig) => {
+    crashReporter.start(crashReporterConfig)
+  })
 
   // ipcRenderer.on('server-shutdown', async () => {
   //   try {
